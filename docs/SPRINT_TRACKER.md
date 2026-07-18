@@ -204,8 +204,8 @@ Signed-in users can see their own completed decisions, reopen a saved report, an
 
 ### Phase 2B — Prompt-quality evaluation
 
-- [ ] Create five fixed, privacy-safe fixtures covering career, business, and personal decisions.
-- [ ] Record expected quality signals, not exact model wording: specific understanding, non-generic questions, fact/assumption separation, non-repetition, uncertainty honesty, and actionable validation.
+- [x] Create five fixed, privacy-safe fixtures covering career, business, and personal decisions in [`AI_QUALITY_FIXTURES.md`](AI_QUALITY_FIXTURES.md).
+- [x] Record expected quality signals and a scoring rubric, not exact model wording: specific understanding, non-generic questions, fact/assumption separation, non-repetition, uncertainty honesty, and actionable validation.
 - [ ] Run the fixtures manually against the deployed version and record pass/fail notes.
 - [ ] Change prompts only when a fixture exposes a repeatable failure; rerun all fixtures after each change.
 - [ ] Keep evaluation artifacts out of the user-facing product and out of production database tables.

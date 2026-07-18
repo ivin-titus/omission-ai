@@ -15,6 +15,9 @@ const requestSchema = z.object({
     .min(1)
     .max(3),
   decisionId: z.number().int().positive().nullable().optional(),
+  // Optional for a short deployment window where an already-open older client may retry.
+  // Current clients always send it and receive sequential retry protection.
+  submissionId: z.string().uuid().optional(),
 });
 
 const reviewSchema = z.object({
@@ -44,7 +47,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const { decision, answers, decisionId } = parsed.data;
+  const { decision, answers, decisionId, submissionId } = parsed.data;
 
   try {
     let userId: string | null = null;
@@ -55,6 +58,46 @@ export async function POST(request: Request) {
     } catch (error) {
       authAvailable = false;
       console.error("[review/complete] auth unavailable; continuing without persistence", error);
+    }
+
+    let ownedDecision = false;
+
+    if (decisionId && authAvailable) {
+      try {
+        const decisionRecord = userId
+          ? await db<{ id: number }>`
+              SELECT id FROM decisions
+              WHERE id = ${decisionId} AND user_id = ${userId}
+              LIMIT 1
+            `
+          : await db<{ id: number }>`
+              SELECT id FROM decisions
+              WHERE id = ${decisionId} AND user_id IS NULL
+              LIMIT 1
+            `;
+
+        ownedDecision = Boolean(decisionRecord[0]);
+
+        if (!ownedDecision) {
+          console.warn("[review/complete] decision ownership mismatch; returning unsaved review");
+        } else if (submissionId) {
+          const duplicate = await db<{ review_data: { review?: unknown } }>`
+            SELECT review_data FROM reviews
+            WHERE decision_id = ${decisionId}
+              AND review_data->>'submission_id' = ${submissionId}
+            ORDER BY id DESC
+            LIMIT 1
+          `;
+          const existingReview = reviewSchema.safeParse(duplicate[0]?.review_data?.review);
+
+          if (existingReview.success) {
+            return Response.json({ review: existingReview.data, persistence: "saved", duplicate: true });
+          }
+        }
+      } catch (error) {
+        ownedDecision = false;
+        console.error("[review/complete] persistence preflight unavailable", error);
+      }
     }
 
     const result = await aiGenerateObject({
@@ -77,34 +120,18 @@ Do not invent facts, use confidence scores, or write generic motivational advice
 
     let persistence: "saved" | "unavailable" = "unavailable";
 
-    if (decisionId && authAvailable) {
+    if (decisionId && authAvailable && ownedDecision) {
       try {
-        const ownedDecision = userId
-          ? await db<{ id: number }>`
-              SELECT id FROM decisions
-              WHERE id = ${decisionId} AND user_id = ${userId}
-              LIMIT 1
-            `
-          : await db<{ id: number }>`
-              SELECT id FROM decisions
-              WHERE id = ${decisionId} AND user_id IS NULL
-              LIMIT 1
-            `;
-
-        if (ownedDecision[0]) {
-          await db`
-            INSERT INTO reviews (decision_id, review_data)
-            VALUES (${decisionId}, ${JSON.stringify({ decision, answers, review: result.output })}::jsonb)
-          `;
-          await db`
-            UPDATE decisions
-            SET status = ${"complete"}
-            WHERE id = ${decisionId}
-          `;
-          persistence = "saved";
-        } else {
-          console.warn("[review/complete] decision ownership mismatch; returning unsaved review");
-        }
+        await db`
+          INSERT INTO reviews (decision_id, review_data)
+          VALUES (${decisionId}, ${JSON.stringify({ submission_id: submissionId, decision, answers, review: result.output })}::jsonb)
+        `;
+        await db`
+          UPDATE decisions
+          SET status = ${"complete"}
+          WHERE id = ${decisionId}
+        `;
+        persistence = "saved";
       } catch (error) {
         console.error("[review/complete] persistence unavailable", error);
       }

@@ -48,6 +48,7 @@ type Draft = {
   analysis: Analysis | null;
   answers: string[];
   decisionId: number | null;
+  submissionId: string | null;
   persistence: "saved" | "unavailable";
   review: Review | null;
 };
@@ -111,6 +112,7 @@ export default function Home() {
   const [analysis, setAnalysis] = useState<Analysis | null>(null);
   const [answers, setAnswers] = useState<string[]>([]);
   const [decisionId, setDecisionId] = useState<number | null>(null);
+  const [submissionId, setSubmissionId] = useState<string | null>(null);
   const [persistence, setPersistence] = useState<"saved" | "unavailable">("unavailable");
   const [review, setReview] = useState<Review | null>(null);
   const [error, setError] = useState("");
@@ -135,6 +137,7 @@ export default function Home() {
             setAnswers(draft.analysis.clarification_questions.map((_, index) => draft.answers?.[index] ?? ""));
           }
           if (typeof draft.decisionId === "number") setDecisionId(draft.decisionId);
+          if (typeof draft.submissionId === "string") setSubmissionId(draft.submissionId);
           if (draft.persistence === "saved" || draft.persistence === "unavailable") setPersistence(draft.persistence);
           if (draft.review) setReview(draft.review);
           if (draft.stage && VALID_STAGES.includes(draft.stage) && draft.stage !== "reviewing" && draft.stage !== "error") setStage(draft.stage);
@@ -155,13 +158,13 @@ export default function Home() {
 
   useEffect(() => {
     if (!hydrated) return;
-    const draft: Draft = { stage, decision, analysis, answers, decisionId, persistence, review };
+    const draft: Draft = { stage, decision, analysis, answers, decisionId, submissionId, persistence, review };
     try {
       window.localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
     } catch {
       // Private browsing and quota limits must never block the review flow.
     }
-  }, [hydrated, stage, decision, analysis, answers, decisionId, persistence, review]);
+  }, [hydrated, stage, decision, analysis, answers, decisionId, submissionId, persistence, review]);
 
   const answeredCount = useMemo(() => answers.filter((answer) => answer.trim()).length, [answers]);
 
@@ -198,6 +201,7 @@ export default function Home() {
       setAnalysis(null);
       setAnswers([]);
       setDecisionId(item.id);
+      setSubmissionId(null);
       setPersistence("saved");
       setStage("complete");
       setHistoryOpen(false);
@@ -219,6 +223,7 @@ export default function Home() {
     setAnalysis(null);
     setAnswers([]);
     setDecisionId(null);
+    setSubmissionId(null);
     setPersistence("unavailable");
     setReview(null);
     clearError();
@@ -252,6 +257,7 @@ export default function Home() {
       setAnalysis(payload.analysis);
       setAnswers(payload.analysis.clarification_questions.map(() => ""));
       setDecisionId(payload.decisionId ?? null);
+      setSubmissionId(window.crypto.randomUUID());
       setPersistence(payload.persistence ?? "unavailable");
       setStage("clarifying");
     } catch (requestError) {
@@ -272,6 +278,9 @@ export default function Home() {
     clearError();
     setStage("reviewing");
 
+    const requestSubmissionId = submissionId ?? window.crypto.randomUUID();
+    if (!submissionId) setSubmissionId(requestSubmissionId);
+
     try {
       const response = await fetch("/api/review/complete", {
         method: "POST",
@@ -280,6 +289,7 @@ export default function Home() {
           decision: decision.trim(),
           answers: analysis.clarification_questions.map((question, index) => ({ question, answer: answers[index].trim() })),
           decisionId,
+          submissionId: requestSubmissionId,
         }),
       });
       const payload = (await response.json()) as { review?: Review; persistence?: "saved" | "unavailable"; error?: string };

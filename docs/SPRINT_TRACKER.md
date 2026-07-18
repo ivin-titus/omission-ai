@@ -7,6 +7,18 @@
 
 This is the execution checklist for the active hackathon. Check items as they are completed and record blockers in the notes column (or in the commit message). `T+0` means the actual timer start, not the time this file was written.
 
+## Fixes done
+
+Every user-visible or reliability fix must be added here in the same change that implements it. Each entry records the affected area, the outcome, and the verification performed. Unverified production checks remain unchecked; they are never implied by a local build.
+
+### 2026-07-19 — final-review retry safety
+
+- [x] **Duplicate final submission:** retain one browser-generated submission id in the recoverable draft and send it with every final-review retry.
+- [x] **Avoid repeated model work:** when a user retries the same saved submission, validate and return the existing report before calling the AI provider or inserting another review row.
+- [x] **Safe persistence boundary:** check decision ownership before duplicate lookup/persistence; database or auth trouble still returns an unsaved in-session review instead of failing the core flow.
+- [x] **Local verification:** `pnpm lint`, `pnpm build`, and `git diff --check` pass.
+- [ ] **Production verification:** retry one completed final request on Vercel and confirm the report is reused without a second model generation.
+
 ## Phase 0: Pre-Hackathon Setup — complete, with one runtime correction
 
 - [x] Initialize Next.js App Router project.
@@ -229,8 +241,18 @@ Automatic scoring, domain-specific prompt routers, model A/B tests, citations, f
 - [x] Return friendly history-unavailable responses when auth or Neon fails; never expose provider, SQL, or stack details.
 - [x] Scope history and reopen queries by the server-derived Clerk user id; never accept a user id from the browser.
 - [x] Normalize restored drafts to the current question count and reject unknown saved UI stages.
-- [ ] Add idempotency keys for retried final submissions to prevent duplicate review rows (deferred until a real duplicate-submit symptom appears).
+- [x] Add a submission id for retried final submissions. The API returns the existing validated report before a sequential retry calls the model or writes another review row.
 - [ ] Add a migration/cleanup policy for abandoned `clarifying` decisions after observing real production usage.
+
+### Phase 3 — reliability and data integrity
+
+- [x] Keep one UUID submission identity in the recoverable browser draft from clarification through final completion.
+- [x] Preserve retry safety after a browser refresh or a transient final-request failure; the same client submission is reused rather than regenerated.
+- [x] Verify ownership before either duplicate lookup or persistence; a mismatched `decisionId` never exposes a saved report.
+- [x] Make the duplicate lookup validate the stored report shape before returning it, so malformed historical JSON cannot break the completion flow.
+- [x] Preserve the existing graceful-degradation contract: Clerk or Neon trouble can still return an AI review, labelled unavailable rather than saved.
+- [ ] Production smoke test: submit a final review, retry the exact final request once, and confirm one history item/report with no second model generation.
+- [ ] If simultaneous requests become a real risk, add a Neon migration with a unique index on `reviews ((review_data->>'submission_id'))`; the current application check protects normal sequential retries, not a distributed race.
 
 ### Authentication acceptance checklist
 

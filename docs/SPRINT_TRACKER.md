@@ -221,3 +221,13 @@ Automatic scoring, domain-specific prompt routers, model A/B tests, citations, f
 - [ ] Authenticated history is user-scoped and does not expose raw database errors.
 - [ ] Reopen uses saved JSON and does not call the model again.
 - [ ] Mobile history and report views remain readable at narrow widths.
+
+### Phase 2 edge-case hardening
+
+- [x] Do not list decisions in history until at least one review row exists; incomplete start attempts stay out of the reopen list.
+- [x] Keep AI completion usable when Clerk has a transient failure; skip persistence and return an explicit unavailable status instead of failing the review.
+- [x] Return friendly history-unavailable responses when auth or Neon fails; never expose provider, SQL, or stack details.
+- [x] Scope history and reopen queries by the server-derived Clerk user id; never accept a user id from the browser.
+- [x] Normalize restored drafts to the current question count and reject unknown saved UI stages.
+- [ ] Add idempotency keys for retried final submissions to prevent duplicate review rows (deferred until a real duplicate-submit symptom appears).
+- [ ] Add a migration/cleanup policy for abandoned `clarifying` decisions after observing real production usage.

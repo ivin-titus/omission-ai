@@ -40,6 +40,7 @@ type Review = {
 
 type Stage = "start" | "clarifying" | "reviewing" | "complete" | "error";
 type ErrorAction = "start" | "complete" | null;
+const VALID_STAGES: Stage[] = ["start", "clarifying", "reviewing", "complete", "error"];
 
 type Draft = {
   stage: Stage;
@@ -131,12 +132,12 @@ export default function Home() {
           if (draft.decision) setDecision(draft.decision);
           if (draft.analysis) {
             setAnalysis(draft.analysis);
-            setAnswers(draft.answers ?? draft.analysis.clarification_questions.map(() => ""));
+            setAnswers(draft.analysis.clarification_questions.map((_, index) => draft.answers?.[index] ?? ""));
           }
           if (typeof draft.decisionId === "number") setDecisionId(draft.decisionId);
           if (draft.persistence === "saved" || draft.persistence === "unavailable") setPersistence(draft.persistence);
           if (draft.review) setReview(draft.review);
-          if (draft.stage && draft.stage !== "reviewing" && draft.stage !== "error") setStage(draft.stage);
+          if (draft.stage && VALID_STAGES.includes(draft.stage) && draft.stage !== "reviewing" && draft.stage !== "error") setStage(draft.stage);
         }
       } catch {
         try {

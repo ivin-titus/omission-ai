@@ -19,6 +19,24 @@ Every user-visible or reliability fix must be added here in the same change that
 - [x] **Local verification:** `pnpm lint`, `pnpm build`, and `git diff --check` pass.
 - [ ] **Production verification:** retry one completed final request on Vercel and confirm the report is reused without a second model generation.
 
+### 2026-07-19 — refinement reliability
+
+- [x] **Transient Neon recovery:** clear a failed warm-instance connection probe so a later request retries the database instead of treating one outage as permanent.
+- [x] **Safe draft restore:** validate locally stored analysis, review, and submission-id data before rendering or submitting it; interrupted/malformed drafts now recover to a usable start or clarify screen.
+- [x] **Timer cleanup:** release the database connection-check timeout after its underlying request settles.
+- [ ] **Production verification:** simulate or observe one transient persistence failure, then confirm a later request on the same deployment can save successfully.
+
+### 2026-07-19 — refinement UI system
+
+- [x] **Responsive visual hierarchy:** replace the flat default layout with a contained header, deliberate content widths, background depth, rounded surfaces, and stronger desktop/mobile spacing.
+- [x] **Flow legibility:** make decision input, clarification cards, report sections, progress, and persistence state easier to scan without changing the two-call workflow.
+- [x] **Local verification:** `pnpm lint`, `pnpm build`, and `git diff --check` pass after the refinement changes.
+- [ ] **Production verification:** inspect the deployed page at phone and desktop widths; collect owner feedback before further visual changes.
+
+## Phase 4 — 40-minute refinement sprint
+
+The active refinement plan is tracked in [`REFINEMENT_SPRINT_TRACKER.md`](REFINEMENT_SPRINT_TRACKER.md). It is limited to silent-failure recovery, responsive premium UI polish, and the final production release gate; it does not expand the two-call product workflow.
+
 ## Phase 0: Pre-Hackathon Setup — complete, with one runtime correction
 
 - [x] Initialize Next.js App Router project.

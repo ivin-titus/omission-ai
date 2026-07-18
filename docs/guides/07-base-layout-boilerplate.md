@@ -1,5 +1,7 @@
 # Base UI Boilerplate (Skip the CSS during the sprint)
 
+> **Historical starter reference.** The snippets below are not the current application shell. For the global submission, current code plus [the Global Hackathon Plan](../GLOBAL_HACKATHON_PLAN.md), [UX Contract](../UX_CONTRACT.md), and [engineering playbook](../AGENTS.md) take precedence; do not overwrite the responsive/dark-token layout with this boilerplate.
+
 You are 100% right. You have 2 hours. You cannot waste 30 minutes writing flexbox layouts for a Navbar and standardizing margins. 
 
 A "Starter Kit" should include the structural shell of the app. Set these two files up **right now** so that tomorrow, you only focus on the AI Decision feature.

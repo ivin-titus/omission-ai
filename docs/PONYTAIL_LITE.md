@@ -44,3 +44,13 @@ When not to be lazy:
 - Do not cut validation, error handling, security, accessibility, data-loss protection, or real edge cases.
 - Do not skip understanding. A small diff you do not understand is just laziness dressed up as efficiency.
 - Non-trivial logic leaves one runnable check behind. Trivial one-liners need no test.
+
+## Global-submission application
+
+For the July 21 global deadline, this philosophy controls implementation shape—not product quality. Use the active [Global Hackathon Plan](GLOBAL_HACKATHON_PLAN.md) to decide whether work is P0, P1, or deferred, then apply the ladder above.
+
+- Time pressure is a reason to remove speculative scope, not validation, ownership checks, accessibility, error recovery, or release verification.
+- A small browser-storage feature is only “lazy” if its storage lifetime and account-boundary wording are truthful.
+- A small auth/history change is only “lazy” if the server still owns identity and cross-user access remains impossible.
+- A small prompt change is only “lazy” if fixtures demonstrate the problem and the two-call workflow remains intact.
+- Before feature freeze, choose the smallest testable vertical change. After freeze, choose the smallest release-blocker fix—or do not change it.

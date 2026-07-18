@@ -1,5 +1,7 @@
 # Clerk Setup Guide (Next.js App Router)
 
+> **Historical setup reference.** For the active global submission, current code plus [the Global Hackathon Plan](../GLOBAL_HACKATHON_PLAN.md), [UX Contract](../UX_CONTRACT.md), and [engineering playbook](../AGENTS.md) take precedence over starter guidance here.
+
 This guide covers setting up Clerk for authentication, specifically optimized for the Hackathon (Google + Email only).
 
 ## 1. Dashboard Setup

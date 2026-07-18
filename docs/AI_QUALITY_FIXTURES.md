@@ -2,6 +2,24 @@
 
 These fixtures are for manual regression checks against the deployed two-call workflow. They are intentionally synthetic and contain no personal data. Evaluate the model's reasoning quality, not whether it uses the exact wording below.
 
+## Global-submission protocol
+
+Use this document as release evidence, not as a source of anecdotal prompt changes.
+
+1. Run the fixtures against the **production candidate** after its commit is deployed.
+2. Before the first run, record the deployment URL, commit hash, PT timestamp, and provider/model only if it is observable without exposing credentials or internal logs.
+3. Complete both calls for every fixture. Record the score and a short, concrete observation in the log below.
+4. A failed dimension is an investigation. Change a prompt/schema only for a repeatable failure, preserve the two-call limit, then rerun all five fixtures.
+5. After the final fixture pass and the July 21 feature freeze, prompts are frozen except for a documented release blocker.
+
+| Release evidence | Value |
+| --- | --- |
+| Deployment URL | `https://omission.ivin.site` |
+| Release commit | — |
+| Run date/time (PT) | — |
+| Provider/model, if safely observable | — |
+| Reviewer | — |
+
 ## Scoring rubric
 
 Score each dimension from 0 to 2 for each fixture:
@@ -81,3 +99,11 @@ Run each fixture through the deployed app and record results here before changin
 | Product launch | — | — | — | — | — |
 
 Do not store fixture responses in Neon or expose this document in the product UI.
+
+## Freeze record
+
+| Decision | Date/time (PT) | Evidence / rationale |
+| --- | --- | --- |
+| Prompt fixture run complete | — | — |
+| Prompt freeze approved | — | — |
+| Post-freeze exception, if any | — | Must name the release blocker and rerun evidence. |

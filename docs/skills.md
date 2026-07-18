@@ -1,188 +1,246 @@
-# skills.md
+# Omission AI Engineering Skills
 
-## product_alignment
+**Active context:** global-hackathon submission through **Tuesday, July 21, 2026, 5:00 PM PT**.
 
-Keep every implementation aligned with the product workflow.
-Reject features that dilute the core experience.
+These are operational checklists, not runtime features. Use the smallest relevant skill set for a task. Every task still follows [PONYTAIL_LITE.md](PONYTAIL_LITE.md): understand the real path, then choose the smallest safe correct change.
 
----
+For active scope and release dates, use [GLOBAL_HACKATHON_PLAN.md](GLOBAL_HACKATHON_PLAN.md). For user-visible behavior, use [UX_CONTRACT.md](UX_CONTRACT.md). For the facts ledger, use [SPRINT_TRACKER.md](SPRINT_TRACKER.md).
 
-## scope_guard
+## How to apply the skills
 
-Protect the MVP from scope creep.
-Prefer removing features over adding them.
+1. Start with **spec alignment**, **blast radius**, and **loop guard**.
+2. Add the domain skill that matches the change: API, persistence, UX, AI quality, or release.
+3. Before editing, name the acceptance condition and the smallest verification.
+4. After editing, update the tracker in the same coherent change.
+5. If time is short, remove unverified scope rather than weakening validation, accessibility, ownership, or the two-call contract.
 
----
-
-## lazy_engineering
-
-Apply the principles from `PONYTAIL_LITE.md`.
-
-Check in order:
-1. Don't build it.
-2. Reuse existing code.
-3. Use platform features.
-4. Use standard library.
-5. Use existing dependency.
-6. Write the smallest correct implementation.
+A skill is successful only when it leaves evidence: a passing check, a browser scenario, a fixture result, or a concrete blocker.
 
 ---
 
-## architecture_review
+## 1. Spec alignment enforcer
 
-Review architecture for unnecessary complexity.
-Suggest simplifications before adding abstractions.
+Use before every feature, refactor, prompt change, or polish request.
 
----
+- Identify which requirement is P0, P1, P2, or out of scope in the global plan.
+- Check the [Product Bible](PRODUCT_BIBLE.md) for product meaning and the [UX Contract](UX_CONTRACT.md) for user-facing truth.
+- Confirm the work preserves the Decision → Clarify → Review flow and exactly two user-visible AI calls.
+- Write one observable acceptance condition before coding.
+- If a request conflicts with the active release plan, document the conflict and ask for a scope decision instead of silently substituting a solution.
 
-## standard_lib_usage
-
-Always use the project's internal libraries before writing raw calls:
-* Use `aiGenerateObject` from `src/lib/ai.ts` instead of raw `generateObject`.
-* Use `db` from `src/lib/db.ts` instead of raw `neon` calls.
-* Access environment variables via `env` from `src/lib/env.ts` instead of `process.env`.
+**Output:** scope classification, preserved invariants, acceptance check.
 
 ---
 
-## implementation_planning
+## 2. Loop guard
 
-Break work into the smallest independently testable tasks.
-Prioritize vertical slices over horizontal infrastructure.
+Use whenever a design introduces generation, retry, automation, background work, or “helpful” behavior.
 
----
+- Count every model invocation, including retries, fallbacks, hidden summarization, and post-processing.
+- Reject agent loops, polling loops, auto-research, and uncontrolled regeneration.
+- Keep retries state-preserving and idempotent from the user’s perspective.
+- A final-review retry retains the existing submission UUID and checks for a valid saved response before more model work.
+- Never add a model call just to improve wording unless a fixture-backed P0 defect requires it and scope is explicitly approved.
 
-## api_design
-
-Design small, predictable APIs.
-Prefer explicit request/response contracts.
-Use structured JSON.
-
----
-
-## prompt_engineering
-
-Optimize prompts for:
-* deterministic output
-* JSON structure
-* concise reasoning
-* useful observations
-
-Avoid verbose prose.
+**Output:** explicit call count and retry semantics.
 
 ---
 
-## json_contract_validation
+## 3. Blast-radius analysis
 
-Ensure every AI response matches the expected schema.
-Recover gracefully from malformed output.
+Use before changing shared state, schemas, global CSS, routing, authentication, persistence, or prompt contracts.
 
----
+- Trace callers and state transitions first with `rg`.
+- List the affected screens, API routes, stored draft shape, database rows, and browser states.
+- Identify what a failure would lose: input, completed review, account ownership, visual layout, or release time.
+- Prefer one well-placed guard in a shared path over several symptom patches.
+- Name a rollback: revert commit, feature flag, delete optional UI affordance, or preserve non-blocking fallback.
 
-## sql_design
-
-Design simple PostgreSQL schemas.
-Prefer raw SQL.
-Avoid unnecessary joins and abstractions.
-
----
-
-## frontend_review
-
-Prefer simple, readable React components.
-Avoid unnecessary state.
-Avoid premature optimization.
+**Output:** changed surfaces, failure mode, rollback option, verification matrix.
 
 ---
 
-## ui_ux_review
+## 4. Ponytail minimalism
 
-Reduce cognitive load.
-Present reviews as structured sections.
-Avoid chat-like layouts unless explicitly required.
+Use for implementation design after the problem is understood.
 
----
+1. Do we need to build this before the deadline?
+2. Does the codebase already have the helper, primitive, or pattern?
+3. Can platform APIs or the standard library do it?
+4. Does an installed dependency already solve it?
+5. Can the safe change be smaller?
+6. Can a duplicate or obsolete line be deleted instead?
 
-## performance_budget
+- Prefer existing `aiGenerateObject`, `db`, `env`, shadcn components, Zod schemas, and browser APIs.
+- Do not add a package for a one-screen need.
+- Do not add a generic abstraction until two real callers demonstrate it.
+- Never use minimalism to skip error handling, validation, accessibility, ownership, or data-loss protection.
 
-Prefer fewer network requests.
-
-Maximum:
-* 2 AI calls
-* minimal database queries
-
----
-
-## error_handling
-
-Return actionable user-facing errors.
-Never expose internal details.
+**Output:** the smallest safe diff and what was deliberately not built.
 
 ---
 
-## code_review
+## 5. API contract guard
 
-Review for:
-* unnecessary files
-* duplicated logic
-* hidden complexity
-* dead code
-* opportunities to simplify
+Use for every Route Handler or request-shape change.
 
-Recommend the smallest safe diff.
+- Validate JSON at the route boundary with Zod.
+- Return stable, user-safe JSON; do not leak provider, SQL, auth, or stack details.
+- Keep IDs nullable where persistence is best-effort.
+- Derive identity from Clerk on the server; never accept a browser user id.
+- Preserve response compatibility with the client state model and tracker smoke test.
+- Audit all non-2xx paths: malformed JSON, invalid values, unauthenticated user, unavailable Clerk/Neon, malformed stored JSON, and request interruption.
 
----
-
-## demo_readiness
-
-Before considering a task complete, verify:
-* works from a fresh start
-* understandable without explanation
-* supports the demo flow
-* does not require manual fixes
+**Output:** request schema, success shape, failure behavior, and caller audit.
 
 ---
 
-## sprint_execution
+## 6. State and storage contract
 
-Treat [`SPRINT_TRACKER.md`](SPRINT_TRACKER.md) as the live execution contract during the hackathon.
+Use for local state, browser storage, retries, history, sign-in transitions, and draft restore.
 
-* Work in vertical slices: start decision, ask questions, produce review.
-* Complete the current gate before starting the next slice.
-* Time-box every non-core enhancement; history is optional and never gates the review flow.
-* At T+105, stop feature work and reserve time for lint, build, smoke test, and deployment.
+- Distinguish React state, browser recovery storage, anonymous session history, and server account history.
+- Browser recovery data is not account data and must not be described as permanent.
+- Use the exact wording from [UX_CONTRACT.md](UX_CONTRACT.md); never say “saved” without naming where it lives.
+- Validate restored stored data before rendering it. A stale stage must fall back to a usable screen, not a blank one.
+- Preserve the same final submission UUID across refresh and retry.
+- If introducing anonymous history, make it bounded, browser-only, clearly temporary, and separately testable from the one current recovery draft.
+- Clear stored state only on an explicit new-review action or a defined retention rule, never as an accidental effect of an error.
 
----
-
-## resilience_first
-
-The demo must remain useful when an external service fails.
-
-* Never make the root render depend on a database health check.
-* Return successful AI output even when persistence fails, with an explicit persistence status.
-* Preserve in-progress input in local storage and make retry idempotent from the user's perspective.
-* Convert provider, database, and parsing failures into short actionable messages; never expose internals.
+**Output:** state lifecycle table and refresh/sign-in/error test cases.
 
 ---
 
-## contract_first
+## 7. History ownership review
 
-Before wiring UI, write the request and response shape for each route and validate it at the boundary.
+Use for history listing, reopening, claiming, deletion, and data migration.
 
-* The browser renders validated JSON, never model-generated markdown.
-* AI schemas should be small, bounded, and directly aligned with visible review sections.
-* Keep `decisionId` nullable so the UI does not couple the demo to persistence.
-* A schema change must be reflected in the route, client state, and tracker smoke test in the same diff.
+- A numeric decision id is never proof of ownership.
+- History list and detail queries must filter by the server-derived Clerk user id.
+- Reopening a history entry renders stored validated JSON; it does not call AI.
+- Anonymous-to-account claim requires a random browser-held submission UUID matching a completed anonymous review.
+- Claim only an unowned record; use an atomic conditional update to prevent a race from transferring a record twice.
+- Old records without a capability token remain anonymous. Do not guess ownership based on text, time, cookie, IP, or number.
+- Deletion, when scheduled, must require confirmation, enforce ownership, update the UI, and leave a recoverable empty state.
+
+**Output:** authorization proof, ownership query review, and cross-user negative test.
 
 ---
 
-## phase_gates
+## 8. UX clarity and accessibility
 
-Use explicit gates instead of intuition:
+Use for any change a user sees or triggers.
 
-1. The app renders without Neon.
-2. Call 1 returns one to three useful questions.
-3. Call 2 returns every visible review section.
-4. A first-time user can finish without explanation.
-5. Lint, build, and the exact demo story pass before freeze.
+- Each screen must answer: what happens next, what is required, what is saved, and how to recover.
+- Validate early: whitespace-only decision/answers must keep the action disabled before an avoidable request is made.
+- A disabled action has a pointer and keyboard-accessible explanation; use a focusable wrapper or helper text because native disabled buttons do not emit pointer events.
+- “I don’t know” is a valid answer to clarification questions.
+- Do not rely on color alone for validation, progress, status, or error.
+- Every input has a visible and programmatic label.
+- Preserve ≥40px primary targets, keyboard focus, readable contrast, loading state, error recovery, long text, and empty state.
+- Verify at 390px and desktop width; do not treat a desktop screenshot as responsive evidence.
 
-When a gate fails, fix it before adding features.
+**Output:** state-copy audit and viewport/accessibility checklist.
+
+---
+
+## 9. Visual system audit
+
+Use when the UI feels “off,” a component does not respect utilities, or a polish pass is proposed.
+
+- Inspect the deployed page before guessing.
+- Use DevTools/computed styles to identify actual CSS precedence, layout dimensions, overflow, and theme variables.
+- Check global CSS and Tailwind layer order before compensating with more utility classes.
+- Tailwind Preflight is the only base reset; do not add an unlayered universal reset that overrides utilities.
+- Keep the document theme and shadcn tokens aligned.
+- Design with deliberate width, spacing, hierarchy, surfaces, and one restrained accent.
+- Test start, clarify, review, error, history, signed-out, signed-in, desktop, and phone states.
+
+**Output:** root cause (not symptom), screenshots/viewport evidence, and a minimal visual diff.
+
+---
+
+## 10. AI quality fixture runner
+
+Use before changing prompts and during the final evidence pass.
+
+- Use all five scenarios in [AI_QUALITY_FIXTURES.md](AI_QUALITY_FIXTURES.md).
+- Score specific understanding, question value, fact/assumption separation, omission quality, uncertainty honesty, validation actionability, and non-repetition.
+- A passing fixture has no 0 and averages at least 1.5.
+- Record observations; do not store responses in user data or production database tables.
+- Change one prompt behavior only when there is a repeatable failure.
+- Rerun every fixture after a prompt/schema/provider change.
+- Freeze prompts after the final fixture run except for a documented release blocker.
+
+**Output:** completed execution log and evidence-backed change rationale.
+
+---
+
+## 11. Resilience and error recovery
+
+Use when changing external integrations or user recovery paths.
+
+- Root rendering must not await a Neon health check.
+- A successful AI output remains usable when persistence fails; label the state truthfully.
+- Clerk failure makes history unavailable, not the review unavailable.
+- Provider/JSON failures result in short recovery copy and a retry that preserves user input.
+- Remove cached failure state when a later request should be allowed to recover.
+- Treat unavailable browser storage as a non-blocking enhancement failure.
+- Do not expose raw infrastructure detail to the user.
+
+**Output:** dependency-failure table and retry/data-retention behavior.
+
+---
+
+## 12. Release gate and rollback
+
+Use for any change that may be committed, deployed, or submitted.
+
+- Run `pnpm lint`, `pnpm exec tsc --noEmit`, `pnpm build`, and `git diff --check` for a production candidate.
+- Separate local static proof, deployed browser proof, and owner confirmation.
+- Run the exact P0 browser matrix in [GLOBAL_HACKATHON_PLAN.md](GLOBAL_HACKATHON_PLAN.md).
+- Record the commit hash, deployment URL, environment assumptions, and test evidence.
+- Prefer a revertable coherent commit. Do not mix unrelated refactors into a release fix.
+- If a change fails after deployment, roll back to the last verified commit or remove the optional surface; do not debug speculative complexity under deadline pressure.
+- After feature freeze, only documented release blockers may alter behavior.
+
+**Output:** release checklist, evidence links/notes, and rollback target.
+
+---
+
+## 13. Tracker and handoff discipline
+
+Use at the end of every meaningful change.
+
+- Add a `Fixes done` entry in [SPRINT_TRACKER.md](SPRINT_TRACKER.md) in the same diff as a user-visible or reliability correction.
+- Update the global plan checkbox only after evidence exists.
+- State what remains pending—not merely what was implemented.
+- Preserve historical tracker data; append a correction or superseding entry rather than rewriting proof.
+- Update README, Product Bible addendum, UX Contract, and engineering playbook when the user-visible contract changes.
+- Give the owner the exact commit/push command if they retain deploy authority.
+
+**Output:** updated docs, exact verification state, and concise handoff.
+
+---
+
+## Recommended skill combinations
+
+| Task | Use these skills |
+| --- | --- |
+| Fix a whitespace/disabled-button problem | spec alignment → blast radius → UX clarity → API contract → release gate |
+| Add anonymous session history | spec alignment → state/storage → history ownership → UX clarity → release gate |
+| Modify an AI prompt | spec alignment → loop guard → AI fixtures → release gate |
+| Repair production auth/history | blast radius → API contract → history ownership → resilience → release gate |
+| Diagnose a broken layout | blast radius → visual system → UX clarity → release gate |
+| Prepare final submission | spec alignment → AI fixtures → release gate → tracker handoff |
+
+## Deadline behavior
+
+The active deadline is not a reason to lower standards. It changes sequencing:
+
+1. Ship and verify P0 correctness.
+2. Gather evidence.
+3. Do P1 only if P0 is green.
+4. Freeze, document, submit early.
+
+At **12:00 PM PT on July 21**, stop accepting ordinary feature work. At **1:00 PM PT**, deploy only the verified production candidate. At **4:00 PM PT**, submit and reserve the final hour for recovery.

@@ -1,5 +1,7 @@
 # Refinement Sprint Tracker — 40 minutes
 
+> **Historical baseline:** this records the completed 40-minute refinement pass. It does not set the current release schedule. Use [GLOBAL_HACKATHON_PLAN.md](GLOBAL_HACKATHON_PLAN.md) for the July 21 deadline and [UX_CONTRACT.md](UX_CONTRACT.md) for open user-facing acceptance gaps.
+
 **Objective:** preserve the working decision-review demo while removing the highest-risk silent failures and making the interface feel intentional on phone and desktop.
 
 **Scope lock:** no additional AI calls, no new product surfaces, no database redesign, no visual work that compromises readability or the existing anonymous flow.
@@ -52,3 +54,18 @@
 - Cleanup policy for abandoned `clarifying` records.
 - Automated end-to-end tests and provider-failure simulation.
 - Prompt changes unless the five existing quality fixtures reveal a repeatable issue.
+- History deletion and management controls.
+
+## Post-sprint continuity fix
+
+- [x] **Implemented locally:** add a capability-based anonymous-review claim path after sign-in, using the existing stored submission UUID rather than an insecure numeric decision id.
+- [ ] **Release candidate:** commit, production-build, and deploy the local claim code before calling the feature shipped.
+- [ ] Production smoke: complete anonymously, sign in in the same browser, and verify the existing report appears in History.
+
+## Global-submission handoff
+
+- [x] Keep the refinement UI baseline: Tailwind utility spacing, dark tokens, contained width, and 390px/desktop no-overflow checks.
+- [ ] Add P0 preventative validation: whitespace-only decisions/answers keep the CTA disabled and expose an accessible reason before error state.
+- [ ] Correct the anonymous persistence label. The current one-record `localStorage` recovery behavior is browser-local, not a true session history or account history.
+- [ ] Run the global release smoke matrix and record exact local/deployed evidence in `SPRINT_TRACKER.md`.
+- [ ] Start P1 visual enhancement or anonymous-history deletion only after the P0 gate is green.

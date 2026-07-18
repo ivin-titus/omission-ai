@@ -11,16 +11,22 @@ Status:
 Living Document
 
 Purpose:
-This document is the single source of truth for the entire project.
+This document is the source of truth for enduring product intent, principles, and the decision-review experience.
 
-If implementation, UI, prompts, or architecture ever conflict with this document,
-this document is considered correct.
+If implementation, UI, prompts, or architecture conflict with the product principles below,
+this document is considered correct for product meaning.
+
+Release timing, verification state, and the active delivery checklist are owned by the Global Hackathon Plan. User-visible storage, validation, and recovery acceptance behavior are owned by the UX Contract.
 
 Every engineering decision should be traceable back to this document.
 
-## Hackathon execution addendum
+## Global submission addendum
 
-The product workflow and principles below are authoritative. For this two-hour implementation, [`docs/SPRINT_TRACKER.md`](SPRINT_TRACKER.md) is the execution contract and the existing starter wrappers are the technical baseline. The current code intentionally uses `src/lib/ai.ts` (provider fallback) and `src/lib/db.ts` (Neon raw SQL); do not stop the sprint to migrate to Drizzle or replace the wrapper with a single provider. Persistence, authentication, and history are best-effort and must never prevent the core decision → clarification → review flow from working. Older technical examples in this document are guidance, not a reason to expand scope during Phase 1.
+The product workflow and principles below are authoritative. For the global submission, [GLOBAL_HACKATHON_PLAN.md](GLOBAL_HACKATHON_PLAN.md) is the active release contract through **Tuesday, July 21, 2026, 5:00 PM PT**; [UX_CONTRACT.md](UX_CONTRACT.md) defines the current user-facing acceptance bar.
+
+The two-hour [SPRINT_TRACKER.md](SPRINT_TRACKER.md), [REFINEMENT_SPRINT_TRACKER.md](REFINEMENT_SPRINT_TRACKER.md), and [METRO_SPRINT_SPEC.md](METRO_SPRINT_SPEC.md) remain valuable implementation history, but their old timeboxes do not control the global event. The existing starter wrappers are the technical baseline: use `src/lib/ai.ts` for provider fallback and `src/lib/db.ts` for Neon raw SQL; do not stop the release to migrate to Drizzle or replace the wrapper with a new provider architecture.
+
+Persistence, authentication, and history are best-effort and must never prevent the core decision → clarification → review flow from working. Account history belongs to signed-in users. Anonymous visitors currently receive browser-local recovery for one current review, not a permanent or multi-item account history; the exact wording and the planned session-history work are defined in the UX Contract.
 
 ---
 
@@ -591,13 +597,17 @@ The system generates a structured review.
 
 ### FR-4
 
-Users can save decision history.
+Signed-in users can save and privately list completed decision history.
+
+Anonymous visitors can complete a review without an account and retain one current browser-local recovery record when storage is available. This is not represented as permanent account history.
 
 ---
 
 ### FR-5
 
-Users can reopen previous reviews.
+Signed-in users can reopen their own previous reviews without another AI call.
+
+Anonymous multi-item history is a planned enhancement, not a current requirement.
 
 ---
 
@@ -629,8 +639,8 @@ The MVP is complete when a user can:
 1. Describe a real decision.
 2. Answer AI clarification questions.
 3. Receive a structured decision review.
-4. Save the review.
-5. Return later and continue the discussion.
+4. If signed in, save and reopen the review from private account history.
+5. If anonymous, keep the current review recoverable in the browser without implying account-level permanence.
 
 Nothing else is required for the hackathon.
 
@@ -832,9 +842,11 @@ No event sourcing.
 
 # 29. Authentication
 
-Authentication exists only to preserve user history.
+Authentication exists only to preserve private user history.
 
 It is **not** a core feature.
+
+Anonymous users must still be able to start, clarify, and complete a review. Account history and reopen are server-scoped to the current Clerk user; a browser-provided user id or numeric decision id is never enough to establish ownership.
 
 Preferred order
 
@@ -986,6 +998,16 @@ conversation.
 
 ---
 
+```
+POST
+
+/api/history/claim
+```
+
+The global-submission candidate uses this only to transfer a completed anonymous review after sign-in when the request presents a matching random submission UUID. It is a capability-based transition, not a numeric-id lookup or a general anonymous-history endpoint.
+
+---
+
 # 33. Error Philosophy
 
 If Gemini fails
@@ -1131,8 +1153,9 @@ Engineering is complete when:
 * Start a decision review.
 * Answer follow-up questions.
 * Receive a structured review.
-* Save it.
-* Reopen it later.
+* Continue safely if browser storage, persistence, or an external service is unavailable.
+* Signed-in users can save and reopen their own completed review.
+* Anonymous users receive truthful browser-local continuity language rather than a false account-history promise.
 
 The implementation should require no manual setup after deployment.
 

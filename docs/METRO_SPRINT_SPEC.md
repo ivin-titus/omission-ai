@@ -4,6 +4,8 @@
 **Goal:** A working Decision Review Workspace that outputs structured JSON.  
 **Rule:** No philosophy. No over-engineering. Just ship.
 
+> **Historical implementation baseline.** This document captures the original two-hour build constraints and may contain starter examples that differ from the current code. For the global event, [GLOBAL_HACKATHON_PLAN.md](GLOBAL_HACKATHON_PLAN.md) owns timing and release gates; [UX_CONTRACT.md](UX_CONTRACT.md) owns user-facing behavior; current routes, schemas, and [AGENTS.md](AGENTS.md) win over a starter snippet.
+
 ---
 
 ## 1. The Stack

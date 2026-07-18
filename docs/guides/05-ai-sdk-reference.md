@@ -1,5 +1,7 @@
 # Vercel AI SDK Reference (`generateText` + `Output.object`)
 
+> **Historical setup reference.** For the active global submission, current code plus [the Global Hackathon Plan](../GLOBAL_HACKATHON_PLAN.md), [UX Contract](../UX_CONTRACT.md), and [engineering playbook](../AGENTS.md) take precedence over starter guidance here. Use the existing `src/lib/ai.ts` wrapper and preserve the two-call limit.
+
 If the train has terrible WiFi, you won't be able to Google the Vercel AI SDK documentation. This guide serves as your offline cheat sheet for structured output with `generateText` in Next.js Route Handlers.
 
 ## 1. Route Handler Template (`app/api/chat/route.ts`)

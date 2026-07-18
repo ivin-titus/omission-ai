@@ -1,5 +1,7 @@
 # NeonDB Setup Guide (Serverless Postgres)
 
+> **Historical setup reference.** For the active global submission, current code plus [the Global Hackathon Plan](../GLOBAL_HACKATHON_PLAN.md), [UX Contract](../UX_CONTRACT.md), and [engineering playbook](../AGENTS.md) take precedence over starter guidance here.
+
 This guide covers setting up your Neon Postgres database and applying the schema.
 
 ## 1. Project Creation

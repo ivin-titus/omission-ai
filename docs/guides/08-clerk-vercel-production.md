@@ -1,5 +1,7 @@
 # Guide: Going Live with Clerk & Vercel (Production)
 
+> **Historical setup reference.** For the active global submission, current code plus [the Global Hackathon Plan](../GLOBAL_HACKATHON_PLAN.md), [UX Contract](../UX_CONTRACT.md), and [engineering playbook](../AGENTS.md) take precedence over starter guidance here. Production auth is currently owner-confirmed; only reopen configuration work when a current symptom is reproduced.
+
 You successfully set up Clerk in **Development** mode. Development mode is great for localhost, but it will NOT work when you deploy your site to Vercel for the judges. Development mode uses "Test Keys" (they start with `pk_test_`).
 
 For production, you need "Live Keys" (they start with `pk_live_`). Here is the step-by-step guide to deploying this correctly.

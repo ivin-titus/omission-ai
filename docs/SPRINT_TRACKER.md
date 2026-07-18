@@ -1,23 +1,55 @@
 # Hackathon Sprint Tracker
 
 **Project:** Omission AI  
-**Sprint:** Phase 1 — Decision Review vertical slice
-**Time budget:** 120 minutes from the moment the timer starts
-**Operating rule:** Ship a reliable demo of the core workflow before adding persistence or polish.
+**Historical sprint:** Phase 1 — Decision Review vertical slice
+**Original time budget:** 120 minutes from the moment the timer started
+**Historical operating rule:** Ship a reliable demo of the core workflow before adding persistence or polish.
 
-This is the execution checklist for the active hackathon. Check items as they are completed and record blockers in the notes column (or in the commit message). `T+0` means the actual timer start, not the time this file was written.
+This is the factual implementation ledger for the original two-hour build and its follow-up fixes. `T+0` means the original timer start, not the time this file was written. It remains editable for factual corrections and new fix evidence; do not rewrite historical proof to make a later release look greener.
+
+## Global submission release overlay — active through July 21, 2026, 5:00 PM PT
+
+[GLOBAL_HACKATHON_PLAN.md](GLOBAL_HACKATHON_PLAN.md) owns the active schedule, scope, and P0/P1/P2 gates. [UX_CONTRACT.md](UX_CONTRACT.md) owns current user-facing acceptance behavior. This tracker records implementation and verification facts for those gates.
+
+- [x] **Authority clarified:** historical 120-minute timeboxes no longer control global-submission work; Product Bible principles, Global Plan release gates, and UX Contract acceptance rules are cross-linked.
+- [x] **Current browser-storage truth documented:** one complete/current recovery record is written to `localStorage` when available; it is not anonymous account history or a session-scoped history list.
+- [ ] **P0 local candidate release:** commit the anonymous-to-account claim implementation, run the production-equivalent build, deploy, and record the release commit.
+- [ ] **P0 validation UX:** prevent whitespace-only Start/Clarify submission with disabled controls and an accessible reason; current click-to-error behavior is not accepted for submission.
+- [ ] **P0 persistence language:** replace “Saved for this session” with accurate browser-local wording until a true session-history feature is shipped.
+- [ ] **P0 evidence:** complete the global production smoke matrix, including claim, retry, signed-in reopen, desktop, and 390px checks.
+- [ ] **P1 only after P0:** anonymous session-history list, deletion, and fixture-backed prompt refinement.
 
 ## Fixes done
 
 Every user-visible or reliability fix must be added here in the same change that implements it. Each entry records the affected area, the outcome, and the verification performed. Unverified production checks remain unchecked; they are never implied by a local build.
 
+### 2026-07-19 — global release-documentation correction
+
+- [x] **Authority chain fixed:** Global Plan owns deadline/scope/evidence; UX Contract owns current user-facing acceptance; Product Bible owns durable principles; historical sprint documents are clearly labeled as baselines.
+- [x] **Anonymous-continuity truth fixed:** document that the current one-record recovery behavior uses browser `localStorage`, is not account history, and must not be labeled “Saved for this session.”
+- [x] **Release-state truth fixed:** identify the anonymous claim as local/unreleased until its commit, build, deploy, and production smoke evidence exist; preserve Clerk’s prior diagnostic as historical rather than an active blocker.
+- [x] **Reference material aligned:** README, engineering playbook, skills, fixture protocol, Ponytail philosophy, Metro baseline, refinement tracker, and setup guides link back to the global release contract.
+- [x] **Static verification:** `pnpm lint`, `pnpm exec tsc --noEmit`, and `git diff --check` pass after the documentation correction.
+
 ### 2026-07-19 — final-review retry safety
 
 - [x] **Duplicate final submission:** retain one browser-generated submission id in the recoverable draft and send it with every final-review retry.
 - [x] **Avoid repeated model work:** when a user retries the same saved submission, validate and return the existing report before calling the AI provider or inserting another review row.
-- [x] **Safe persistence boundary:** check decision ownership before duplicate lookup/persistence; database or auth trouble still returns an unsaved in-session review instead of failing the core flow.
+- [x] **Safe persistence boundary:** check decision ownership before duplicate lookup/persistence; database or auth trouble still returns an unsaved browser-local review instead of failing the core flow.
 - [x] **Local verification:** `pnpm lint`, `pnpm build`, and `git diff --check` pass.
 - [ ] **Production verification:** retry one completed final request on Vercel and confirm the report is reused without a second model generation.
+
+### 2026-07-19 — anonymous review continuity (implemented locally; not yet released)
+
+- [x] **Root cause identified:** a completed anonymous review was persisted with `user_id = NULL`, but sign-in never associated it with the newly authenticated user.
+- [x] **Local secure claim path:** `POST /api/history/claim` transfers only a completed anonymous decision whose random browser-held `submission_id` matches, without accepting a user id from the client.
+- [x] **Local claim-state behavior:** show “Adding to history…” while a post-sign-in claim runs, then “Saved to history” only after a claim or already-owned confirmation. The non-claimed anonymous label still needs the P0 browser-local wording correction.
+- [x] **Local interrupted-claim recovery:** restore an interrupted “Adding to history…” draft as retryable browser-local state rather than leaving the report stuck in a loading label.
+- [x] **Local static verification:** `pnpm lint`, `pnpm exec tsc --noEmit`, and `git diff --check` pass.
+- [ ] **Commit/deploy:** the local candidate is uncommitted/unreleased until its coherent release commit is created and deployed.
+- [ ] **Production-equivalent build verification:** rerun `pnpm build` before deployment.
+- [ ] **Production verification:** complete a review while signed out, sign in in the same browser, then confirm it appears in History without another AI call.
+- [ ] **Legacy limitation:** anonymous reviews created before submission IDs were introduced cannot be securely claimed retroactively; retain only browser-local access if present rather than guessing ownership.
 
 ### 2026-07-19 — refinement reliability
 
@@ -43,9 +75,9 @@ Every user-visible or reliability fix must be added here in the same change that
 - [x] **Independent GUI verification:** Brave rendered the deployed start screen at desktop and phone widths; layout is centered/contained, inputs and CTA are present, and neither viewport has horizontal overflow.
 - [ ] **Production verification:** inspect the deployed start, clarify, and review screens at phone and desktop widths; confirm contained layout, card padding, and readable touch targets.
 
-## Phase 4 — 40-minute refinement sprint
+## Phase 4 — historical 40-minute refinement sprint
 
-The active refinement plan is tracked in [`REFINEMENT_SPRINT_TRACKER.md`](REFINEMENT_SPRINT_TRACKER.md). It is limited to silent-failure recovery, responsive premium UI polish, and the final production release gate; it does not expand the two-call product workflow.
+The historical refinement work is tracked in [`REFINEMENT_SPRINT_TRACKER.md`](REFINEMENT_SPRINT_TRACKER.md). It covered silent-failure recovery, responsive premium UI polish, and a production release gate; it did not expand the two-call product workflow. The Global Plan now owns current sequencing.
 
 ## Phase 0: Pre-Hackathon Setup — complete, with one runtime correction
 
@@ -59,7 +91,7 @@ The active refinement plan is tracked in [`REFINEMENT_SPRINT_TRACKER.md`](REFINE
 - [x] Push the codebase to GitHub and connect Vercel.
 - [x] **Runtime correction:** the root layout no longer awaits a database connection before rendering. A Neon outage degrades persistence instead of taking down the demo.
 
-## Phase 1: Core demo — the only ship target
+## Phase 1: historical core demo — original ship target
 
 ### Phase 1 contract
 
@@ -141,10 +173,10 @@ The final decision remains the user's. There is no chat transcript, confidence s
 ### T+80–T+95 — Protect against lost work and failed services
 
 - [x] Persist the in-progress decision, answers, and current state to a namespaced `localStorage` key on change.
-- [x] Restore the draft after refresh; clear it only after a successful completed review or an explicit “new review” action.
+- [x] Restore the draft after refresh; clear it only after an explicit “new review” action. A completed review remains in the one browser-local recovery record, so its label must be accurate under the global UX contract.
 - [x] Map `400`, `401`, `429`, timeout, and generic server errors to short actionable copy. Never show stack traces or provider names.
 - [x] Add a retry action that reuses the current state and does not duplicate visible questions.
-- [x] If persistence is unavailable, show a quiet “Saved for this session”/“History unavailable” status while the review remains usable.
+- [x] **Historical recovery implementation:** if persistence is unavailable, show a quiet fallback status while the review remains usable. **Global P0 correction:** the current anonymous “Saved for this session” copy must become accurate browser-local wording.
 
 **Gate:** Simulate a failed database request and a failed AI request. The user retains input and receives a useful recovery path.
 
@@ -161,7 +193,7 @@ The final decision remains the user's. There is no chat transcript, confidence s
 
 - [x] Verify terminology is “review,” “decision,” and “history,” never “chat.”
 - [x] Verify no confidence score, unsupported certainty, legal/medical/financial guarantee, or generic motivational advice appears.
-- [x] Verify keyboard labels, focus order, disabled states, readable contrast, and responsive card layout.
+- [x] Verify keyboard labels, focus order, request-in-flight disabled states, readable contrast, and responsive card layout. **Global P0 gap:** pre-submit whitespace validation and its accessible disabled-state explanation remain pending.
 - [x] Verify all AI arrays are rendered safely as text; no markdown/HTML injection path is introduced.
 - [x] Ensure metadata/title and the promise “Think before you commit” are visible without explaining the technology.
 
@@ -221,11 +253,11 @@ Do not start these during Phase 1: Drizzle migration, a new provider abstraction
 3. **Auth unavailable:** allow the demo flow to render if the current environment permits it; history becomes optional.
 4. **Time below 20 minutes:** stop adding features, run the smoke test, fix only blockers, and deploy the last known-good state.
 
-## Phase 2: Continuity and quality — planned next slice
+## Phase 2: Continuity and quality — historical planned next slice
 
 **Prerequisite:** deploy and smoke-test the Phase 1 prompt-quality commit before starting this work. Phase 2 must preserve the existing three-state review flow and the two-AI-call hard budget.
 
-### Phase 2 contract
+### Phase 2 contract — historical baseline, superseded for scheduling by the Global Plan
 
 Signed-in users can see their own completed decisions, reopen a saved report, and start a new review without losing the current flow. Anonymous users can still complete a review; history is simply unavailable to them. Prompt quality is evaluated with fixed fixtures before further prompt edits.
 
@@ -291,16 +323,18 @@ Auth is intentionally **not required to start a review**. It is required only fo
 - [x] Signed-in users see History and User controls after Clerk finishes loading.
 - [x] Anonymous users see a Sign in action instead of an empty auth area.
 - [x] Clerk/auth loading is visible as `Account loading…` rather than silently hiding account controls.
-- [x] Anonymous completion is labelled “Saved for this session,” not “Saved to history.”
+- [ ] **Superseded correctness gap:** anonymous completion currently says “Saved for this session.” Because the current recovery record uses `localStorage`, Global P0 requires browser-local wording instead; do not count the old label as verified.
 - [x] Production smoke test: open the current Vercel deployment in a signed-out browser and verify `Sign in` appears. **Confirmed by owner.**
 - [x] Production smoke test: sign in, complete a new review, verify History appears, then reopen the saved report. **Confirmed by owner.**
 - [ ] If `Account loading…` persists beyond the normal page load, verify the production Clerk publishable key, allowed domain, and Clerk browser requests before changing application code.
 
-### Next phase handoff — production quality evaluation
+### Next phase handoff — historical production-quality evaluation
 
-Auth is confirmed healthy. The next active slice is the five-fixture AI evaluation in [`AI_QUALITY_FIXTURES.md`](AI_QUALITY_FIXTURES.md). Keep prompts frozen until the fixtures are run and the execution log has scores and observations. Any prompt change must cite the fixture failure it fixes and rerun all five cases.
+Auth is confirmed healthy. The historical next slice was the five-fixture AI evaluation in [`AI_QUALITY_FIXTURES.md`](AI_QUALITY_FIXTURES.md). The Global Plan now controls fixture timing and prompt freeze; any prompt change must cite the fixture failure it fixes and rerun all five cases.
 
-### Authentication deployment audit — 2026-07-19
+### Authentication deployment audit — 2026-07-19 (historical diagnostic)
+
+**Disposition:** the entries below record an earlier Clerk diagnostic. The owner later confirmed that Clerk works in production for signed-in history and reopen. These old 403/CSP observations are not active blockers; reopen the investigation only if the production symptom is reproduced, and do not weaken application security policy based on this historical browser evidence.
 
 Evidence from the current production host and browser console:
 
@@ -308,7 +342,6 @@ Evidence from the current production host and browser console:
 - [x] The deployed response includes `x-clerk-auth-status: signed-out`, proving Clerk middleware is executing and recognizing the anonymous state.
 - [x] The deployed HTML includes Clerk JS from `https://clerk.ivin.site`; the application is not missing the publishable key.
 - [x] The deployed response has no `Content-Security-Policy` header and the HTML has no CSP meta tag. Console CSP violations are therefore not generated by this repository's `next.config.ts` or app code.
-- [ ] In Clerk Production Dashboard, add `omission.ivin.site` to the Allowed Subdomains list for the Clerk instance. The observed `403 subdomain_not_allowed` is a Clerk configuration failure, not an application route failure.
-- [ ] Retest with Brave Shields disabled for the site or in a clean browser profile. The observed `connect-src 'none'`, blob-worker, and script CSP reports are consistent with a browser/extension/edge policy and must not be “fixed” by weakening application CSP without finding its source.
-- [ ] After the Clerk allowlist change, verify the console no longer shows `subdomain_not_allowed`, the header changes from `Account loading…` to `Sign in` when signed out, and the sign-in modal opens.
-- [ ] Verify signed-in state shows UserButton and History, then complete and reopen one review.
+- [x] **Historical incident closed by owner verification:** Clerk now works on the production domain; signed-in history and reopen were confirmed. This does not assert which external configuration change resolved the earlier observation.
+- [x] **No speculative CSP change:** the app was not modified to weaken CSP in response to the old browser reports. Reproduce first if a current auth error reappears.
+- [ ] **Regression-only retest:** if `Account loading…` persists or Clerk fails again, capture the current host, Clerk response, browser profile/extensions, and production configuration before changing code.

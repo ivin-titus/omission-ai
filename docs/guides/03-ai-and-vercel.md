@@ -1,5 +1,7 @@
 # AI Providers & Vercel Deployment Setup
 
+> **Historical setup reference.** For the active global submission, current code plus [the Global Hackathon Plan](../GLOBAL_HACKATHON_PLAN.md), [UX Contract](../UX_CONTRACT.md), and [engineering playbook](../AGENTS.md) take precedence over starter guidance here. Preserve the two-call workflow and do not expose credentials in logs or screenshots.
+
 This guide covers getting your AI keys and wiring everything up in Vercel.
 
 ## 1. AI Provider Setup

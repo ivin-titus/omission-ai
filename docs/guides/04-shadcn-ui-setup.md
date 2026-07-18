@@ -1,5 +1,7 @@
 # Beginner's Guide: shadcn/ui & Tailwind (pnpm edition)
 
+> **Historical setup reference.** For the active global submission, current code plus [the Global Hackathon Plan](../GLOBAL_HACKATHON_PLAN.md), [UX Contract](../UX_CONTRACT.md), and [engineering playbook](../AGENTS.md) take precedence over starter guidance here. Do not reintroduce a global reset that can override Tailwind utilities.
+
 Since you have no previous experience with `shadcn/ui`, here is a quick explainer:
 **shadcn is NOT an npm package you import.** It is a CLI tool that physically copies pre-built React components (like a Button or Textarea) directly into your `components/ui/` folder. This gives you 100% control over how they look.
 

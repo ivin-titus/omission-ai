@@ -1,5 +1,7 @@
 # Offline Contingency Plan (The "Train Drops Wifi" Playbook)
 
+> **Historical setup reference.** For the active global submission, current code plus [the Global Hackathon Plan](../GLOBAL_HACKATHON_PLAN.md), [UX Contract](../UX_CONTRACT.md), and [engineering playbook](../AGENTS.md) take precedence over starter guidance here. The current product keeps one browser-local recovery record until an explicit new review or browser-data clearing; do not copy an old “clear on API success” snippet without reconciling it with the active storage contract.
+
 Your `METRO_SPRINT_SPEC.md` brilliantly outlines a contingency plan for network failure. If the wifi drops on the train, or Neon DB times out, here is how you execute the fallback smoothly so your demo still works for the judges.
 
 ## 1. The `localStorage` Strategy (Network Drops)

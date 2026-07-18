@@ -1,5 +1,6 @@
 import { aiGenerateObject } from "@/lib/ai";
 import { db } from "@/lib/db";
+import { auth } from "@clerk/nextjs/server";
 import { z } from "zod";
 
 const requestSchema = z.object({
@@ -33,6 +34,16 @@ export async function POST(request: Request) {
   const decision = parsed.data.decision;
 
   try {
+    let userId: string | null = null;
+    let authAvailable = true;
+
+    try {
+      userId = (await auth()).userId;
+    } catch (error) {
+      authAvailable = false;
+      console.error("[review/start] auth unavailable; continuing without persistence", error);
+    }
+
     const result = await aiGenerateObject({
       system: `You are Omission AI, a calm and intellectually honest decision reviewer.
 Do not recommend a decision yet. Understand the user's situation, expose assumptions,
@@ -52,9 +63,10 @@ Never invent facts, imply certainty, or produce confidence scores.`,
     let persistence: "saved" | "unavailable" = "unavailable";
 
     try {
+      if (!authAvailable) throw new Error("Clerk auth unavailable");
       const rows = await db<{ id: number }>`
         INSERT INTO decisions (user_id, original_decision, status)
-        VALUES (${null}, ${decision}, ${"clarifying"})
+        VALUES (${userId}, ${decision}, ${"clarifying"})
         RETURNING id
       `;
       decisionId = rows[0]?.id ?? null;

@@ -1,12 +1,14 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { SignInButton, UserButton, useUser } from "@clerk/nextjs";
 import {
   AlertTriangle,
   ArrowLeft,
   ArrowRight,
   Check,
   CircleHelp,
+  History,
   Lightbulb,
   LoaderCircle,
   RefreshCw,
@@ -47,6 +49,13 @@ type Draft = {
   decisionId: number | null;
   persistence: "saved" | "unavailable";
   review: Review | null;
+};
+
+type HistoryItem = {
+  id: number;
+  original_decision: string;
+  status: string;
+  created_at: string;
 };
 
 const DRAFT_KEY = "omission-ai:phase-1-draft:v1";
@@ -106,6 +115,12 @@ export default function Home() {
   const [error, setError] = useState("");
   const [errorAction, setErrorAction] = useState<ErrorAction>(null);
   const [hydrated, setHydrated] = useState(false);
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [history, setHistory] = useState<HistoryItem[]>([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
+  const [historyAvailable, setHistoryAvailable] = useState(true);
+  const [historyError, setHistoryError] = useState("");
+  const { isLoaded: authLoaded, isSignedIn } = useUser();
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -148,6 +163,49 @@ export default function Home() {
   }, [hydrated, stage, decision, analysis, answers, decisionId, persistence, review]);
 
   const answeredCount = useMemo(() => answers.filter((answer) => answer.trim()).length, [answers]);
+
+  async function openHistory() {
+    setHistoryOpen(true);
+    setHistoryLoading(true);
+    setHistoryError("");
+
+    try {
+      const response = await fetch("/api/history", { cache: "no-store" });
+      const payload = (await response.json()) as { history?: HistoryItem[]; available?: boolean };
+      setHistory(payload.history ?? []);
+      setHistoryAvailable(payload.available !== false);
+      if (!response.ok) setHistoryError("History is temporarily unavailable.");
+    } catch {
+      setHistoryAvailable(false);
+      setHistoryError("History is temporarily unavailable.");
+    } finally {
+      setHistoryLoading(false);
+    }
+  }
+
+  async function openSavedReview(item: HistoryItem) {
+    setHistoryLoading(true);
+    setHistoryError("");
+
+    try {
+      const response = await fetch(`/api/history/${item.id}`, { cache: "no-store" });
+      const payload = (await response.json()) as { decision?: string; review?: Review; error?: string };
+      if (!response.ok || !payload.review || !payload.decision) throw new Error(payload.error ?? "This review could not be loaded.");
+
+      setDecision(payload.decision);
+      setReview(payload.review);
+      setAnalysis(null);
+      setAnswers([]);
+      setDecisionId(item.id);
+      setPersistence("saved");
+      setStage("complete");
+      setHistoryOpen(false);
+    } catch (requestError) {
+      setHistoryError(requestError instanceof Error ? requestError.message : "This review could not be loaded.");
+    } finally {
+      setHistoryLoading(false);
+    }
+  }
 
   function clearError() {
     setError("");
@@ -254,12 +312,55 @@ export default function Home() {
               <span className="block text-[10px] uppercase tracking-[0.2em] text-zinc-500">Decision review workspace</span>
             </span>
           </button>
-          {stage !== "start" && (
-            <Button variant="ghost" onClick={startNewReview} className="text-zinc-400 hover:text-zinc-100">
-              <RefreshCw /> New review
-            </Button>
-          )}
+          <div className="flex items-center gap-1">
+            {authLoaded && isSignedIn && (
+              <Button variant="ghost" onClick={() => void openHistory()} className="text-zinc-400 hover:text-zinc-100">
+                <History /> <span className="hidden sm:inline">History</span>
+              </Button>
+            )}
+            {authLoaded && !isSignedIn && (
+              <SignInButton mode="modal">
+                <Button variant="ghost" className="text-zinc-400 hover:text-zinc-100">Sign in</Button>
+              </SignInButton>
+            )}
+            {authLoaded && isSignedIn && <UserButton />}
+            {stage !== "start" && (
+              <Button variant="ghost" onClick={startNewReview} className="text-zinc-400 hover:text-zinc-100">
+                <RefreshCw /> <span className="hidden sm:inline">New review</span>
+              </Button>
+            )}
+          </div>
         </header>
+
+        {historyOpen && (
+          <div className="fixed inset-0 z-40 bg-[#08090b]/95 px-5 py-6 backdrop-blur-sm sm:px-8 sm:py-10">
+            <section className="mx-auto flex h-full w-full max-w-3xl flex-col">
+              <div className="flex items-center justify-between border-b border-white/10 pb-5">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-amber-200/70">Continuity</p>
+                  <h1 className="mt-2 text-2xl font-semibold text-zinc-50">Decision history</h1>
+                </div>
+                <Button variant="ghost" onClick={() => setHistoryOpen(false)} className="text-zinc-400 hover:text-zinc-100">Close</Button>
+              </div>
+              <div className="min-h-0 flex-1 overflow-y-auto py-6">
+                {historyLoading && <div className="flex items-center gap-3 py-8 text-sm text-zinc-500"><LoaderCircle className="size-4 animate-spin" /> Loading saved reviews…</div>}
+                {!historyLoading && historyError && <Alert variant="destructive" className="border-red-300/20 bg-red-300/[0.06] text-zinc-100"><AlertTriangle /><AlertTitle>History unavailable</AlertTitle><AlertDescription className="text-zinc-400">{historyError}</AlertDescription></Alert>}
+                {!historyLoading && !historyError && !historyAvailable && <p className="py-8 text-sm text-zinc-500">History is temporarily unavailable. New reviews still work.</p>}
+                {!historyLoading && !historyError && historyAvailable && history.length === 0 && <p className="py-8 text-sm text-zinc-500">No completed reviews yet. Your next review will appear here.</p>}
+                {!historyLoading && !historyError && history.length > 0 && (
+                  <div className="space-y-3">
+                    {history.map((item) => (
+                      <button key={item.id} type="button" onClick={() => void openSavedReview(item)} className="w-full rounded-xl border border-white/10 bg-white/[0.045] p-4 text-left transition-colors hover:border-amber-200/30 hover:bg-amber-200/[0.06]">
+                        <p className="line-clamp-2 text-sm leading-6 text-zinc-200">{item.original_decision}</p>
+                        <p className="mt-2 text-xs text-zinc-500">{new Date(item.created_at).toLocaleDateString()} · {item.status}</p>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </section>
+          </div>
+        )}
 
         <div className="mx-auto flex w-full max-w-3xl flex-1 flex-col justify-center py-12">
           {stage === "start" && (

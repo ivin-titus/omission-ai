@@ -191,14 +191,14 @@ Signed-in users can see their own completed decisions, reopen a saved report, an
 
 ### Phase 2A — User-scoped history and reopen
 
-- [ ] Confirm the existing `decisions.user_id` column and Clerk production keys are available.
-- [ ] In route handlers, read the optional Clerk user id; never trust a user id from the browser.
-- [ ] Save `user_id` on new decisions when a user is signed in; preserve anonymous fallback behavior.
-- [ ] Add `GET /api/history` returning only the signed-in user’s small summaries, newest first.
-- [ ] Add `GET /api/history/:id` with a user-scoped lookup and a friendly `404` for inaccessible records.
-- [ ] Add a minimal history affordance that does not compete with “New review.”
-- [ ] Reopen the saved final report as a read-only review view; do not create a new AI call.
-- [ ] Keep history failures non-blocking: a user can always start a new review.
+- [x] Confirm the existing `decisions.user_id` column and Clerk production keys are available.
+- [x] In route handlers, read the optional Clerk user id; never trust a user id from the browser.
+- [x] Save `user_id` on new decisions when a user is signed in; preserve anonymous fallback behavior.
+- [x] Add `GET /api/history` returning only the signed-in user’s small summaries, newest first.
+- [x] Add `GET /api/history/:id` with a user-scoped lookup and a friendly `404` for inaccessible records.
+- [x] Add a minimal history affordance that does not compete with “New review.”
+- [x] Reopen the saved final report as a read-only review view; do not create a new AI call.
+- [x] Keep history failures non-blocking: a user can always start a new review.
 
 **Acceptance gate:** a signed-in user can complete a review, refresh, open history, and reopen that exact report; another user cannot retrieve it by changing the id.
 
@@ -216,7 +216,7 @@ Automatic scoring, domain-specific prompt routers, model A/B tests, citations, f
 
 ### Phase 2 freeze criteria
 
-- [ ] `pnpm lint` and `pnpm build` pass.
+- [x] `pnpm lint` and `pnpm build` pass.
 - [ ] Anonymous start → clarify → review still works.
 - [ ] Authenticated history is user-scoped and does not expose raw database errors.
 - [ ] Reopen uses saved JSON and does not call the model again.

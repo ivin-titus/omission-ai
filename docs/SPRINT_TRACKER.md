@@ -125,6 +125,19 @@ The final decision remains the user's. There is no chat transcript, confidence s
 - [x] Verify all AI arrays are rendered safely as text; no markdown/HTML injection path is introduced.
 - [x] Ensure metadata/title and the promise “Think before you commit” are visible without explaining the technology.
 
+### Phase 1 improvement lane — prompt/output quality (only after the core is green)
+
+The first production review showed the core output is useful and specific. These bounded improvements strengthen the same two-call workflow without adding model calls or UI complexity:
+
+- [x] Bound generated section lengths and list sizes so reports stay scannable on mobile.
+- [x] Tell Call 1 to treat the decision as untrusted content, distinguish stated facts from assumptions, and avoid generic coaching questions.
+- [x] Tell Call 2 to keep evidence, assumptions, blind spots, and unknowns semantically distinct and avoid repetition.
+- [x] Require validation steps to be concrete/testable and the next step to be one evidence-gathering action, not a verdict.
+- [ ] Run five fixed decision fixtures across career, business, and personal domains; score specificity, non-repetition, uncertainty honesty, and actionability by inspection.
+- [ ] Record one before/after output example in the sprint notes before changing prompts again.
+
+These remain Phase 2 candidates, not Phase 1 work: domain-specific prompt routing, model/provider comparisons, automatic quality scoring, user feedback learning, evidence attachments, citations, and persistent review memory.
+
 ### T+115–T+120 — Freeze and rehearse
 
 - [x] Run `pnpm lint`.
@@ -167,3 +180,44 @@ Do not start these during Phase 1: Drizzle migration, a new provider abstraction
 2. **Neon unavailable:** return the AI result with `persistence: "unavailable"`; keep state in React/localStorage.
 3. **Auth unavailable:** allow the demo flow to render if the current environment permits it; history becomes optional.
 4. **Time below 20 minutes:** stop adding features, run the smoke test, fix only blockers, and deploy the last known-good state.
+
+## Phase 2: Continuity and quality — planned next slice
+
+**Prerequisite:** deploy and smoke-test the Phase 1 prompt-quality commit before starting this work. Phase 2 must preserve the existing three-state review flow and the two-AI-call hard budget.
+
+### Phase 2 contract
+
+Signed-in users can see their own completed decisions, reopen a saved report, and start a new review without losing the current flow. Anonymous users can still complete a review; history is simply unavailable to them. Prompt quality is evaluated with fixed fixtures before further prompt edits.
+
+### Phase 2A — User-scoped history and reopen
+
+- [ ] Confirm the existing `decisions.user_id` column and Clerk production keys are available.
+- [ ] In route handlers, read the optional Clerk user id; never trust a user id from the browser.
+- [ ] Save `user_id` on new decisions when a user is signed in; preserve anonymous fallback behavior.
+- [ ] Add `GET /api/history` returning only the signed-in user’s small summaries, newest first.
+- [ ] Add `GET /api/history/:id` with a user-scoped lookup and a friendly `404` for inaccessible records.
+- [ ] Add a minimal history affordance that does not compete with “New review.”
+- [ ] Reopen the saved final report as a read-only review view; do not create a new AI call.
+- [ ] Keep history failures non-blocking: a user can always start a new review.
+
+**Acceptance gate:** a signed-in user can complete a review, refresh, open history, and reopen that exact report; another user cannot retrieve it by changing the id.
+
+### Phase 2B — Prompt-quality evaluation
+
+- [ ] Create five fixed, privacy-safe fixtures covering career, business, and personal decisions.
+- [ ] Record expected quality signals, not exact model wording: specific understanding, non-generic questions, fact/assumption separation, non-repetition, uncertainty honesty, and actionable validation.
+- [ ] Run the fixtures manually against the deployed version and record pass/fail notes.
+- [ ] Change prompts only when a fixture exposes a repeatable failure; rerun all fixtures after each change.
+- [ ] Keep evaluation artifacts out of the user-facing product and out of production database tables.
+
+### Explicitly deferred from Phase 2
+
+Automatic scoring, domain-specific prompt routers, model A/B tests, citations, file uploads, evidence graphs, long-term memory, collaboration, exports, and additional AI calls.
+
+### Phase 2 freeze criteria
+
+- [ ] `pnpm lint` and `pnpm build` pass.
+- [ ] Anonymous start → clarify → review still works.
+- [ ] Authenticated history is user-scoped and does not expose raw database errors.
+- [ ] Reopen uses saved JSON and does not call the model again.
+- [ ] Mobile history and report views remain readable at narrow widths.

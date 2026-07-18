@@ -40,6 +40,7 @@
 ### T+32–T+40 — release gate
 
 - [x] Run `pnpm lint`, `pnpm build`, and `git diff --check`.
+- [x] Production GUI check, start screen: Brave rendered the deployed page at 1440×1000 and 390×844 with no horizontal overflow, contained gutters, non-collapsed card padding, a focusable decision field, and a visible primary action.
 - [ ] Production smoke: anonymous start → clarify → review on mobile-width viewport.
 - [ ] Production smoke: sign in → complete → history → reopen.
 - [ ] Production smoke: retry a completed final submission and verify no second AI generation.

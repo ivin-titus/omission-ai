@@ -39,6 +39,8 @@ Every user-visible or reliability fix must be added here in the same change that
 - [x] **Fix applied:** remove the redundant universal reset and keep Tailwind Preflight as the single base reset, allowing utility classes and shadcn components to render as designed.
 - [x] **Theme consistency:** apply the `dark` class at the document root so shadcn tokens, dark variants, focus rings, and shared components agree with the dark product surface.
 - [x] **Local verification:** `pnpm lint`, `pnpm build`, and `git diff --check` pass with the corrected cascade and document theme.
+- [x] **Production start-screen verification:** owner confirmed the deployed layout is materially improved after the cascade correction.
+- [x] **Independent GUI verification:** Brave rendered the deployed start screen at desktop and phone widths; layout is centered/contained, inputs and CTA are present, and neither viewport has horizontal overflow.
 - [ ] **Production verification:** inspect the deployed start, clarify, and review screens at phone and desktop widths; confirm contained layout, card padding, and readable touch targets.
 
 ## Phase 4 — 40-minute refinement sprint

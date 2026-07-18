@@ -17,7 +17,7 @@ This is the execution checklist for the active hackathon. Check items as they ar
 - [x] Configure Clerk development and production deployment guidance.
 - [x] Install Tailwind and shadcn/ui primitives.
 - [x] Push the codebase to GitHub and connect Vercel.
-- [ ] **Runtime correction:** the root layout must not await a database connection before rendering. A Neon outage must degrade persistence, not take down the demo.
+- [x] **Runtime correction:** the root layout no longer awaits a database connection before rendering. A Neon outage degrades persistence instead of taking down the demo.
 
 ## Phase 1: Core demo — the only ship target
 
@@ -33,20 +33,20 @@ The final decision remains the user's. There is no chat transcript, confidence s
 
 ### T+0–T+10 — Stabilize the baseline
 
-- [ ] Run `pnpm lint` and `pnpm build` once to capture the starter baseline.
-- [ ] Confirm the required environment variables are available locally; do not print secret values.
-- [ ] Remove the render-blocking database check from the root layout. Keep explicit database checks inside persistence paths.
-- [ ] Confirm the existing wrappers are the only infrastructure entry points: `aiGenerateObject`, `db`, and `env`.
-- [ ] Create a single client-side review state model: `start | clarifying | reviewing | complete | error`.
+- [x] Run `pnpm lint` and `pnpm build` once to capture the starter baseline.
+- [x] Confirm the required environment variables are available locally; do not print secret values.
+- [x] Remove the render-blocking database check from the root layout. Keep explicit database checks inside persistence paths.
+- [x] Confirm the existing wrappers are the only infrastructure entry points: `aiGenerateObject`, `db`, and `env`.
+- [x] Create a single client-side review state model: `start | clarifying | reviewing | complete | error`.
 
 **Gate:** If the app cannot render without Neon, fix that before writing feature UI. If the AI key is unavailable, use the documented deterministic demo fixture only as a local contingency—not as the default path.
 
 ### T+10–T+30 — Lock contracts and implement Call 1
 
-- [ ] Add `POST /api/review/start`.
-- [ ] Validate JSON input at the route boundary. Accept a trimmed decision string; reject empty input and an unreasonably large payload with a friendly `400` response.
-- [ ] Call `aiGenerateObject` exactly once with a focused reviewer prompt.
-- [ ] Use a Zod contract equivalent to:
+- [x] Add `POST /api/review/start`.
+- [x] Validate JSON input at the route boundary. Accept a trimmed decision string; reject empty input and an unreasonably large payload with a friendly `400` response.
+- [x] Call `aiGenerateObject` exactly once with a focused reviewer prompt.
+- [x] Use a Zod contract equivalent to:
 
   ```ts
   z.object({
@@ -57,18 +57,18 @@ The final decision remains the user's. There is no chat transcript, confidence s
   })
   ```
 
-- [ ] Return stable JSON: `{ decisionId: number | null, analysis, persistence: "saved" | "unavailable" }`.
-- [ ] Attempt to save the decision only after the AI result exists. A failed insert must still return the analysis so the client can continue.
-- [ ] Keep all user-facing AI text concise, specific, respectful, and uncertainty-aware.
+- [x] Return stable JSON: `{ decisionId: number | null, analysis, persistence: "saved" | "unavailable" }`.
+- [x] Attempt to save the decision only after the AI result exists. A failed insert must still return the analysis so the client can continue.
+- [x] Keep all user-facing AI text concise, specific, respectful, and uncertainty-aware.
 
 **Gate:** Submit a decision and see real structured questions in the browser. If this gate is not green, stop and repair Call 1 before touching history or visual polish.
 
 ### T+30–T+50 — Implement Call 2
 
-- [ ] Add `POST /api/review/complete`.
-- [ ] Validate the original decision, question/answer pairs, and optional `decisionId` at the boundary.
-- [ ] Call `aiGenerateObject` exactly once. Include the original decision and answers; do not send a hidden third analysis request.
-- [ ] Use a Zod contract equivalent to:
+- [x] Add `POST /api/review/complete`.
+- [x] Validate the original decision, question/answer pairs, and optional `decisionId` at the boundary.
+- [x] Call `aiGenerateObject` exactly once. Include the original decision and answers; do not send a hidden third analysis request.
+- [x] Use a Zod contract equivalent to:
 
   ```ts
   z.object({
@@ -82,29 +82,29 @@ The final decision remains the user's. There is no chat transcript, confidence s
   })
   ```
 
-- [ ] Persist the completed report best-effort in `reviews.review_data` when a valid `decisionId` exists; update decision status to `complete` if that query is safe to add in the remaining time.
-- [ ] Return the review regardless of database success.
+- [x] Persist the completed report best-effort in `reviews.review_data` when a valid `decisionId` exists; update decision status to `complete` if that query is safe to add in the remaining time.
+- [x] Return the review regardless of database success.
 
 **Gate:** A submitted set of answers produces a complete report in one request, with no raw model text or stack trace exposed to the client.
 
 ### T+50–T+80 — Build the three-state client flow
 
-- [ ] Replace the starter home screen with a single focused review workspace.
-- [ ] Start state: headline, one-sentence explanation, labeled textarea, character guidance, and one primary action.
-- [ ] Clarify state: show the decision context, each question with an accessible input, progress/status, and one primary “Generate review” action.
-- [ ] Review state: render the report as ordered cards/sections, not chat bubbles. Use empty-state copy for any empty array.
-- [ ] Disable submit actions while requests are in flight; show a clear loading state and preserve entered text.
-- [ ] Keep the visual treatment calm and surgical: strong hierarchy, generous spacing, one accent for omissions, no dashboard chrome.
+- [x] Replace the starter home screen with a single focused review workspace.
+- [x] Start state: headline, one-sentence explanation, labeled textarea, character guidance, and one primary action.
+- [x] Clarify state: show the decision context, each question with an accessible input, progress/status, and one primary “Generate review” action.
+- [x] Review state: render the report as ordered cards/sections, not chat bubbles. Use empty-state copy for any empty array.
+- [x] Disable submit actions while requests are in flight; show a clear loading state and preserve entered text.
+- [x] Keep the visual treatment calm and surgical: strong hierarchy, generous spacing, one accent for omissions, no dashboard chrome.
 
 **Gate:** A first-time user can complete the three states without explanation on desktop and a narrow viewport.
 
 ### T+80–T+95 — Protect against lost work and failed services
 
-- [ ] Persist the in-progress decision, answers, and current state to a namespaced `localStorage` key on change.
-- [ ] Restore the draft after refresh; clear it only after a successful completed review or an explicit “new review” action.
-- [ ] Map `400`, `401`, `429`, timeout, and generic server errors to short actionable copy. Never show stack traces or provider names.
-- [ ] Add a retry action that reuses the current state and does not duplicate visible questions.
-- [ ] If persistence is unavailable, show a quiet “Saved for this session”/“History unavailable” status while the review remains usable.
+- [x] Persist the in-progress decision, answers, and current state to a namespaced `localStorage` key on change.
+- [x] Restore the draft after refresh; clear it only after a successful completed review or an explicit “new review” action.
+- [x] Map `400`, `401`, `429`, timeout, and generic server errors to short actionable copy. Never show stack traces or provider names.
+- [x] Add a retry action that reuses the current state and does not duplicate visible questions.
+- [x] If persistence is unavailable, show a quiet “Saved for this session”/“History unavailable” status while the review remains usable.
 
 **Gate:** Simulate a failed database request and a failed AI request. The user retains input and receives a useful recovery path.
 
@@ -119,18 +119,18 @@ The final decision remains the user's. There is no chat transcript, confidence s
 
 ### T+105–T+115 — Demo polish and safety pass
 
-- [ ] Verify terminology is “review,” “decision,” and “history,” never “chat.”
-- [ ] Verify no confidence score, unsupported certainty, legal/medical/financial guarantee, or generic motivational advice appears.
-- [ ] Verify keyboard labels, focus order, disabled states, readable contrast, and responsive card layout.
-- [ ] Verify all AI arrays are rendered safely as text; no markdown/HTML injection path is introduced.
-- [ ] Ensure metadata/title and the promise “Think before you commit” are visible without explaining the technology.
+- [x] Verify terminology is “review,” “decision,” and “history,” never “chat.”
+- [x] Verify no confidence score, unsupported certainty, legal/medical/financial guarantee, or generic motivational advice appears.
+- [x] Verify keyboard labels, focus order, disabled states, readable contrast, and responsive card layout.
+- [x] Verify all AI arrays are rendered safely as text; no markdown/HTML injection path is introduced.
+- [x] Ensure metadata/title and the promise “Think before you commit” are visible without explaining the technology.
 
 ### T+115–T+120 — Freeze and rehearse
 
-- [ ] Run `pnpm lint`.
-- [ ] Run `pnpm build` with the same environment shape used by deployment.
+- [x] Run `pnpm lint`.
+- [x] Run `pnpm build` with the same environment shape used by deployment.
 - [ ] Smoke test the exact demo story: “Should I leave my job to start freelancing?” (or one equally realistic decision) from start to final review.
-- [ ] Confirm the app still renders if Neon is unavailable and confirm no more than two AI requests are made.
+- [x] Confirm the app still renders if Neon is unavailable and confirm no more than two AI requests are made.
 - [ ] Stop feature work. Commit/deploy the known-good state and rehearse the 90-second explanation.
 
 ## API and persistence contract

@@ -314,6 +314,7 @@ export default function Home() {
             </span>
           </button>
           <div className="flex items-center gap-1">
+            {!authLoaded && <span className="px-2 text-[11px] text-zinc-600">Account loading…</span>}
             {authLoaded && isSignedIn && (
               <Button variant="ghost" onClick={() => void openHistory()} className="text-zinc-400 hover:text-zinc-100">
                 <History /> <span className="hidden sm:inline">History</span>
@@ -447,7 +448,7 @@ export default function Home() {
                 </div>
                 <div className="flex flex-wrap gap-2">
                   <Badge className="w-fit border border-emerald-300/20 bg-emerald-300/10 text-emerald-200 hover:bg-emerald-300/10"><Check className="mr-1 size-3" /> Review complete</Badge>
-                  <Badge variant="outline" className="w-fit border-white/10 text-zinc-500">{persistence === "saved" ? "Saved to history" : "Saved for this session"}</Badge>
+                  <Badge variant="outline" className="w-fit border-white/10 text-zinc-500">{persistence === "saved" && isSignedIn ? "Saved to history" : "Saved for this session"}</Badge>
                 </div>
               </div>
               <Card className="border-amber-200/20 bg-amber-200/[0.06] text-zinc-100 shadow-2xl shadow-black/20">

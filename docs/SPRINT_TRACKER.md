@@ -231,3 +231,17 @@ Automatic scoring, domain-specific prompt routers, model A/B tests, citations, f
 - [x] Normalize restored drafts to the current question count and reject unknown saved UI stages.
 - [ ] Add idempotency keys for retried final submissions to prevent duplicate review rows (deferred until a real duplicate-submit symptom appears).
 - [ ] Add a migration/cleanup policy for abandoned `clarifying` decisions after observing real production usage.
+
+### Authentication acceptance checklist
+
+Auth is intentionally **not required to start a review**. It is required only for user-scoped history and reopening saved reviews.
+
+- [x] Anonymous users can start, clarify, and complete a review.
+- [x] Signed-in users receive a server-derived Clerk user id on new decisions.
+- [x] Signed-in users see History and User controls after Clerk finishes loading.
+- [x] Anonymous users see a Sign in action instead of an empty auth area.
+- [x] Clerk/auth loading is visible as `Account loading…` rather than silently hiding account controls.
+- [x] Anonymous completion is labelled “Saved for this session,” not “Saved to history.”
+- [ ] Production smoke test: open the current Vercel deployment in a signed-out browser and verify `Sign in` appears.
+- [ ] Production smoke test: sign in, complete a new review, verify History appears, then reopen the saved report.
+- [ ] If `Account loading…` persists beyond the normal page load, verify the production Clerk publishable key, allowed domain, and Clerk browser requests before changing application code.

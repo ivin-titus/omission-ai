@@ -1,11 +1,394 @@
-export default function Home() {
+"use client";
+
+import { useEffect, useMemo, useState } from "react";
+import {
+  AlertTriangle,
+  ArrowLeft,
+  ArrowRight,
+  Check,
+  CircleHelp,
+  Lightbulb,
+  LoaderCircle,
+  RefreshCw,
+  ShieldAlert,
+  Sparkles,
+} from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Textarea } from "@/components/ui/textarea";
+
+type Analysis = {
+  understanding: string;
+  assumptions: string[];
+  missing_information: string[];
+  clarification_questions: string[];
+};
+
+type Review = {
+  situation: string;
+  evidence: string[];
+  assumptions: string[];
+  blind_spots: string[];
+  unknowns: string[];
+  recommended_validation: string[];
+  next_step: string;
+};
+
+type Stage = "start" | "clarifying" | "reviewing" | "complete" | "error";
+type ErrorAction = "start" | "complete" | null;
+
+type Draft = {
+  stage: Stage;
+  decision: string;
+  analysis: Analysis | null;
+  answers: string[];
+  decisionId: number | null;
+  persistence: "saved" | "unavailable";
+  review: Review | null;
+};
+
+const DRAFT_KEY = "omission-ai:phase-1-draft:v1";
+
+function listOrEmpty(items: string[], empty = "Nothing surfaced here yet.") {
+  return items.length > 0 ? (
+    <ul className="space-y-3">
+      {items.map((item, index) => (
+        <li key={`${item}-${index}`} className="flex gap-3 text-sm leading-6 text-zinc-300">
+          <span className="mt-2 size-1.5 shrink-0 rounded-full bg-amber-300" />
+          <span>{item}</span>
+        </li>
+      ))}
+    </ul>
+  ) : (
+    <p className="text-sm text-zinc-500">{empty}</p>
+  );
+}
+
+function ReviewSection({
+  title,
+  eyebrow,
+  icon,
+  items,
+  empty,
+}: {
+  title: string;
+  eyebrow: string;
+  icon: React.ReactNode;
+  items: string[];
+  empty?: string;
+}) {
   return (
-    <main className="container mx-auto py-10 min-h-screen flex flex-col items-center justify-center space-y-6">
-      <div className="text-center space-y-2">
-        <h1 className="text-4xl font-bold tracking-tight text-primary">Omission AI</h1>
-        <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-          Decision Review Workspace. The timer starts now.
-        </p>
+    <Card className="border-white/10 bg-white/[0.045] text-zinc-100 shadow-2xl shadow-black/10">
+      <CardHeader className="gap-3 border-b border-white/8 pb-4">
+        <div className="flex items-center gap-3">
+          <span className="grid size-8 place-items-center rounded-lg bg-amber-300/10 text-amber-200">{icon}</span>
+          <div>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-amber-200/70">{eyebrow}</p>
+            <CardTitle className="mt-1 text-lg text-zinc-100">{title}</CardTitle>
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent className="pt-5">{listOrEmpty(items, empty)}</CardContent>
+    </Card>
+  );
+}
+
+export default function Home() {
+  const [stage, setStage] = useState<Stage>("start");
+  const [decision, setDecision] = useState("");
+  const [analysis, setAnalysis] = useState<Analysis | null>(null);
+  const [answers, setAnswers] = useState<string[]>([]);
+  const [decisionId, setDecisionId] = useState<number | null>(null);
+  const [persistence, setPersistence] = useState<"saved" | "unavailable">("unavailable");
+  const [review, setReview] = useState<Review | null>(null);
+  const [error, setError] = useState("");
+  const [errorAction, setErrorAction] = useState<ErrorAction>(null);
+  const [hydrated, setHydrated] = useState(false);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      try {
+        const stored = window.localStorage.getItem(DRAFT_KEY);
+        if (stored) {
+          const draft = JSON.parse(stored) as Partial<Draft>;
+          if (draft.decision) setDecision(draft.decision);
+          if (draft.analysis) {
+            setAnalysis(draft.analysis);
+            setAnswers(draft.answers ?? draft.analysis.clarification_questions.map(() => ""));
+          }
+          if (typeof draft.decisionId === "number") setDecisionId(draft.decisionId);
+          if (draft.persistence === "saved" || draft.persistence === "unavailable") setPersistence(draft.persistence);
+          if (draft.review) setReview(draft.review);
+          if (draft.stage && draft.stage !== "reviewing" && draft.stage !== "error") setStage(draft.stage);
+        }
+      } catch {
+        try {
+          window.localStorage.removeItem(DRAFT_KEY);
+        } catch {
+          // Ignore unavailable browser storage.
+        }
+      } finally {
+        setHydrated(true);
+      }
+    }, 0);
+
+    return () => window.clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    if (!hydrated) return;
+    const draft: Draft = { stage, decision, analysis, answers, decisionId, persistence, review };
+    try {
+      window.localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+    } catch {
+      // Private browsing and quota limits must never block the review flow.
+    }
+  }, [hydrated, stage, decision, analysis, answers, decisionId, persistence, review]);
+
+  const answeredCount = useMemo(() => answers.filter((answer) => answer.trim()).length, [answers]);
+
+  function clearError() {
+    setError("");
+    setErrorAction(null);
+  }
+
+  function startNewReview() {
+    setStage("start");
+    setDecision("");
+    setAnalysis(null);
+    setAnswers([]);
+    setDecisionId(null);
+    setPersistence("unavailable");
+    setReview(null);
+    clearError();
+    try {
+      window.localStorage.removeItem(DRAFT_KEY);
+    } catch {
+      // Storage is an enhancement; the in-memory review remains usable.
+    }
+  }
+
+  async function startReview() {
+    if (decision.trim().length < 10) {
+      setError("Describe the decision and a little context so the review can be useful.");
+      setErrorAction("start");
+      setStage("error");
+      return;
+    }
+
+    clearError();
+    setStage("reviewing");
+
+    try {
+      const response = await fetch("/api/review/start", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ decision: decision.trim() }),
+      });
+      const payload = (await response.json()) as { analysis?: Analysis; decisionId?: number | null; persistence?: "saved" | "unavailable"; error?: string };
+      if (!response.ok || !payload.analysis) throw new Error(payload.error ?? "The review could not be started.");
+
+      setAnalysis(payload.analysis);
+      setAnswers(payload.analysis.clarification_questions.map(() => ""));
+      setDecisionId(payload.decisionId ?? null);
+      setPersistence(payload.persistence ?? "unavailable");
+      setStage("clarifying");
+    } catch (requestError) {
+      setError(requestError instanceof Error ? requestError.message : "The review could not be started. Please retry.");
+      setErrorAction("start");
+      setStage("error");
+    }
+  }
+
+  async function completeReview() {
+    if (!analysis || answers.length !== analysis.clarification_questions.length || answers.some((answer) => !answer.trim())) {
+      setError("Answer each question, or write “I don't know” where the information is still missing.");
+      setErrorAction("complete");
+      setStage("error");
+      return;
+    }
+
+    clearError();
+    setStage("reviewing");
+
+    try {
+      const response = await fetch("/api/review/complete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          decision: decision.trim(),
+          answers: analysis.clarification_questions.map((question, index) => ({ question, answer: answers[index].trim() })),
+          decisionId,
+        }),
+      });
+      const payload = (await response.json()) as { review?: Review; persistence?: "saved" | "unavailable"; error?: string };
+      if (!response.ok || !payload.review) throw new Error(payload.error ?? "The review could not be completed.");
+
+      setReview(payload.review);
+      setPersistence(payload.persistence ?? "unavailable");
+      setStage("complete");
+    } catch (requestError) {
+      setError(requestError instanceof Error ? requestError.message : "The review could not be completed. Please retry.");
+      setErrorAction("complete");
+      setStage("error");
+    }
+  }
+
+  function retry() {
+    if (errorAction === "start") void startReview();
+    if (errorAction === "complete") void completeReview();
+  }
+
+  return (
+    <main className="min-h-screen bg-[#08090b] text-zinc-100">
+      <div className="mx-auto flex min-h-screen w-full max-w-5xl flex-col px-5 py-6 sm:px-8 sm:py-10">
+        <header className="flex items-center justify-between border-b border-white/8 pb-5">
+          <button type="button" onClick={startNewReview} className="group flex items-center gap-3 text-left">
+            <span className="grid size-9 place-items-center rounded-xl border border-amber-200/20 bg-amber-200/10 text-amber-200 transition-colors group-hover:bg-amber-200/20">
+              <Sparkles className="size-4" />
+            </span>
+            <span>
+              <span className="block text-sm font-semibold tracking-wide text-zinc-100">Omission AI</span>
+              <span className="block text-[10px] uppercase tracking-[0.2em] text-zinc-500">Decision review workspace</span>
+            </span>
+          </button>
+          {stage !== "start" && (
+            <Button variant="ghost" onClick={startNewReview} className="text-zinc-400 hover:text-zinc-100">
+              <RefreshCw /> New review
+            </Button>
+          )}
+        </header>
+
+        <div className="mx-auto flex w-full max-w-3xl flex-1 flex-col justify-center py-12">
+          {stage === "start" && (
+            <section className="space-y-8">
+              <div className="space-y-5">
+                <Badge className="border border-amber-200/20 bg-amber-200/10 text-amber-200 hover:bg-amber-200/10">Think before you commit</Badge>
+                <h1 className="max-w-2xl text-4xl font-semibold tracking-tight text-zinc-50 sm:text-6xl sm:leading-[1.05]">What might you be missing?</h1>
+                <p className="max-w-xl text-base leading-7 text-zinc-400 sm:text-lg">Describe an important decision. Omission AI will surface assumptions, unknowns, and the questions worth answering before you move.</p>
+              </div>
+              <Card className="border-white/10 bg-white/[0.045] shadow-2xl shadow-black/20">
+                <CardContent className="space-y-5 p-5 sm:p-6">
+                  <label htmlFor="decision" className="text-sm font-medium text-zinc-200">The decision in front of you</label>
+                  <Textarea
+                    id="decision"
+                    value={decision}
+                    onChange={(event) => setDecision(event.target.value)}
+                    placeholder="Example: Should I leave my job to start freelancing full-time?"
+                    maxLength={4000}
+                    className="min-h-36 resize-y border-white/10 bg-black/20 text-zinc-100 placeholder:text-zinc-600 focus-visible:border-amber-200/50 focus-visible:ring-amber-200/20"
+                  />
+                  <div className="flex items-center justify-between gap-4">
+                    <p className="text-xs text-zinc-500">Include what you want, what constrains you, and what feels uncertain.</p>
+                    <span className="shrink-0 text-xs tabular-nums text-zinc-600">{decision.length}/4000</span>
+                  </div>
+                  <Button size="lg" onClick={() => void startReview()} className="w-full bg-amber-200 text-zinc-950 hover:bg-amber-100 sm:w-auto">
+                    Begin review <ArrowRight />
+                  </Button>
+                </CardContent>
+              </Card>
+            </section>
+          )}
+
+          {stage === "clarifying" && analysis && (
+            <section className="space-y-8">
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-amber-200/70">Step 1 of 2 · Clarify</p>
+                  <h1 className="mt-3 text-3xl font-semibold tracking-tight text-zinc-50 sm:text-4xl">Let&apos;s inspect the decision.</h1>
+                </div>
+                <Badge variant="outline" className="hidden border-white/10 text-zinc-400 sm:inline-flex">{answeredCount}/{answers.length} answered</Badge>
+              </div>
+              <Card className="border-white/10 bg-white/[0.045] shadow-2xl shadow-black/20">
+                <CardContent className="space-y-5 p-5 sm:p-6">
+                  <div className="space-y-2">
+                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-zinc-500">Our current understanding</p>
+                    <p className="text-base leading-7 text-zinc-200">{analysis.understanding}</p>
+                  </div>
+                  <div className="rounded-lg border border-amber-200/10 bg-amber-200/[0.04] p-4">
+                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-amber-200/70">What may still be missing</p>
+                    <div className="mt-3">{listOrEmpty(analysis.missing_information, "The first pass did not find a clear information gap.")}</div>
+                  </div>
+                </CardContent>
+              </Card>
+              <div className="space-y-5">
+                {analysis.clarification_questions.map((question, index) => (
+                  <div key={question} className="space-y-2">
+                    <label htmlFor={`answer-${index}`} className="flex gap-3 text-sm font-medium leading-6 text-zinc-200">
+                      <span className="grid size-6 shrink-0 place-items-center rounded-full bg-amber-200/10 text-xs text-amber-200">{index + 1}</span>
+                      {question}
+                    </label>
+                    <Textarea
+                      id={`answer-${index}`}
+                      value={answers[index] ?? ""}
+                      onChange={(event) => setAnswers((current) => current.map((answer, answerIndex) => answerIndex === index ? event.target.value : answer))}
+                      placeholder="Your answer, or “I don’t know” if this is still an unknown."
+                      className="min-h-24 border-white/10 bg-white/[0.04] text-zinc-100 placeholder:text-zinc-600 focus-visible:border-amber-200/50 focus-visible:ring-amber-200/20"
+                    />
+                  </div>
+                ))}
+              </div>
+              <Button size="lg" onClick={() => void completeReview()} className="w-full bg-amber-200 text-zinc-950 hover:bg-amber-100 sm:w-auto">
+                Generate decision review <ArrowRight />
+              </Button>
+            </section>
+          )}
+
+          {stage === "complete" && review && (
+            <section className="space-y-8">
+              <div className="flex flex-col gap-4 border-b border-white/8 pb-7 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-amber-200/70">Step 2 of 2 · Review</p>
+                  <h1 className="mt-3 text-3xl font-semibold tracking-tight text-zinc-50 sm:text-4xl">See the decision more clearly.</h1>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <Badge className="w-fit border border-emerald-300/20 bg-emerald-300/10 text-emerald-200 hover:bg-emerald-300/10"><Check className="mr-1 size-3" /> Review complete</Badge>
+                  <Badge variant="outline" className="w-fit border-white/10 text-zinc-500">{persistence === "saved" ? "Saved to history" : "Saved for this session"}</Badge>
+                </div>
+              </div>
+              <Card className="border-amber-200/20 bg-amber-200/[0.06] text-zinc-100 shadow-2xl shadow-black/20">
+                <CardHeader className="gap-3 pb-3"><p className="text-xs font-semibold uppercase tracking-[0.2em] text-amber-200/70">Situation</p><CardTitle className="text-xl leading-8 text-zinc-50">{review.situation}</CardTitle></CardHeader>
+                <CardContent><p className="text-sm leading-6 text-zinc-400">The final decision is still yours. This review shows what deserves validation first.</p></CardContent>
+              </Card>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <ReviewSection title="Evidence" eyebrow="What we know" icon={<Check />} items={review.evidence} empty="No evidence was confirmed in the review." />
+                <ReviewSection title="Assumptions" eyebrow="What is believed" icon={<CircleHelp />} items={review.assumptions} />
+                <ReviewSection title="Blind spots" eyebrow="What may be omitted" icon={<ShieldAlert />} items={review.blind_spots} />
+                <ReviewSection title="Unknowns" eyebrow="What to find out" icon={<AlertTriangle />} items={review.unknowns} />
+              </div>
+              <Card className="border-white/10 bg-white/[0.045] text-zinc-100 shadow-2xl shadow-black/10">
+                <CardHeader className="gap-3 pb-3"><div className="flex items-center gap-3"><span className="grid size-8 place-items-center rounded-lg bg-amber-300/10 text-amber-200"><Lightbulb className="size-4" /></span><div><p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-amber-200/70">Next validation</p><CardTitle className="mt-1 text-lg text-zinc-100">What to verify before committing</CardTitle></div></div></CardHeader>
+                <CardContent>{listOrEmpty(review.recommended_validation)}</CardContent>
+              </Card>
+              <div className="flex flex-col gap-4 rounded-xl border border-amber-200/20 bg-amber-200/[0.08] p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
+                <div className="flex gap-3"><ArrowRight className="mt-1 size-5 shrink-0 text-amber-200" /><div><p className="text-xs font-semibold uppercase tracking-[0.2em] text-amber-200/70">Immediate next step</p><p className="mt-2 text-base leading-7 text-zinc-100">{review.next_step}</p></div></div>
+                <Button variant="outline" onClick={startNewReview} className="border-white/15 bg-transparent text-zinc-100 hover:bg-white/10">Review another decision</Button>
+              </div>
+            </section>
+          )}
+
+          {stage === "reviewing" && (
+            <section className="flex flex-col items-center justify-center gap-5 py-24 text-center">
+              <span className="grid size-14 place-items-center rounded-2xl border border-amber-200/20 bg-amber-200/10 text-amber-200"><LoaderCircle className="size-6 animate-spin" /></span>
+              <div><h1 className="text-2xl font-semibold text-zinc-50">Reviewing the decision</h1><p className="mt-2 text-sm text-zinc-500">Looking for what is known, assumed, and still missing.</p></div>
+            </section>
+          )}
+
+          {stage === "error" && (
+            <section className="space-y-6">
+              <Button variant="ghost" onClick={() => { clearError(); setStage(errorAction === "complete" ? "clarifying" : "start"); }} className="-ml-3 text-zinc-400 hover:text-zinc-100"><ArrowLeft /> Back</Button>
+              <Alert variant="destructive" className="border-red-300/20 bg-red-300/[0.06] text-zinc-100">
+                <AlertTriangle />
+                <AlertTitle>Something interrupted the review</AlertTitle>
+                <AlertDescription className="text-zinc-400">{error}</AlertDescription>
+              </Alert>
+              <div className="flex flex-wrap gap-3"><Button onClick={retry} className="bg-amber-200 text-zinc-950 hover:bg-amber-100"><RefreshCw /> Try again</Button><Button variant="outline" onClick={startNewReview} className="border-white/15 bg-transparent text-zinc-100 hover:bg-white/10">Start over</Button></div>
+            </section>
+          )}
+        </div>
+        <footer className="flex items-center gap-2 border-t border-white/8 pt-5 text-xs text-zinc-600"><span className="size-1.5 rounded-full bg-amber-200/70" /> Structured thinking before commitment</footer>
       </div>
     </main>
   );

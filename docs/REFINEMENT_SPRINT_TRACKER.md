@@ -19,7 +19,8 @@
 - [x] Confirm current production behavior with owner feedback: anonymous flow, signed-in history, reopen, and retry are working.
 - [x] Identify a warm-server reliability defect: `db` cached a rejected connection probe indefinitely after one temporary Neon failure.
 - [x] Identify an invalid-draft defect: a stale/malformed stored stage can render no content when its required analysis/review payload is absent.
-- [ ] Record any UI findings from phone and desktop visual inspection before changing layout.
+- [x] Record the production UI root cause: an unlayered universal CSS reset overrode Tailwind utility spacing after compilation, collapsing all `margin`/`padding` utilities and `mx-auto` centering.
+- [x] Align the document with shadcn’s dark token system; the app previously used dark surface classes while shared shadcn tokens still resolved to the light theme.
 
 ### T+10–T+20 — silent-failure fixes
 

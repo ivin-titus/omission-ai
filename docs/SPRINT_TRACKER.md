@@ -33,6 +33,14 @@ Every user-visible or reliability fix must be added here in the same change that
 - [x] **Local verification:** `pnpm lint`, `pnpm build`, and `git diff --check` pass after the refinement changes.
 - [ ] **Production verification:** inspect the deployed page at phone and desktop widths; collect owner feedback before further visual changes.
 
+### 2026-07-19 — UI cascade correction
+
+- [x] **Root cause identified:** an unlayered `* { margin: 0; padding: 0; }` rule in `globals.css` was emitted after Tailwind utilities and overrode component padding, responsive spacing, and `mx-auto` centering.
+- [x] **Fix applied:** remove the redundant universal reset and keep Tailwind Preflight as the single base reset, allowing utility classes and shadcn components to render as designed.
+- [x] **Theme consistency:** apply the `dark` class at the document root so shadcn tokens, dark variants, focus rings, and shared components agree with the dark product surface.
+- [x] **Local verification:** `pnpm lint`, `pnpm build`, and `git diff --check` pass with the corrected cascade and document theme.
+- [ ] **Production verification:** inspect the deployed start, clarify, and review screens at phone and desktop widths; confirm contained layout, card padding, and readable touch targets.
+
 ## Phase 4 — 40-minute refinement sprint
 
 The active refinement plan is tracked in [`REFINEMENT_SPRINT_TRACKER.md`](REFINEMENT_SPRINT_TRACKER.md). It is limited to silent-failure recovery, responsive premium UI polish, and the final production release gate; it does not expand the two-call product workflow.

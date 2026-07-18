@@ -18,6 +18,10 @@ this document is considered correct.
 
 Every engineering decision should be traceable back to this document.
 
+## Hackathon execution addendum
+
+The product workflow and principles below are authoritative. For this two-hour implementation, [`docs/SPRINT_TRACKER.md`](SPRINT_TRACKER.md) is the execution contract and the existing starter wrappers are the technical baseline. The current code intentionally uses `src/lib/ai.ts` (provider fallback) and `src/lib/db.ts` (Neon raw SQL); do not stop the sprint to migrate to Drizzle or replace the wrapper with a single provider. Persistence, authentication, and history are best-effort and must never prevent the core decision → clarification → review flow from working. Older technical examples in this document are guidance, not a reason to expand scope during Phase 1.
+
 ---
 
 # 1. Vision

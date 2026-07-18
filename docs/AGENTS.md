@@ -8,6 +8,16 @@
 > This repository is built during a hackathon.
 > Every engineering decision must maximize demo quality while minimizing implementation time.
 
+## Phase 1 execution authority
+
+The active implementation contract is [`SPRINT_TRACKER.md`](SPRINT_TRACKER.md). The Product Bible defines the product behavior and language; the tracker resolves its older technical examples against the starter that is actually installed. During this sprint:
+
+- Keep the existing `src/lib/ai.ts` provider wrapper and `src/lib/db.ts` Neon/raw-SQL wrapper. Do not pause to replace them with Drizzle or a new provider architecture.
+- Treat persistence and history as best-effort. The decision → clarification → review flow must remain usable when Neon is unavailable.
+- Keep the hard workflow budget at two AI requests: one initial analysis and one final review.
+- Do not let Clerk, database checks, history, or visual polish block the core review demo.
+- If time pressure creates a conflict, preserve the smallest working vertical slice and document the deferred work in the tracker.
+
 ---
 
 # Mission

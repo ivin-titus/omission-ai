@@ -139,3 +139,50 @@ Before considering a task complete, verify:
 * understandable without explanation
 * supports the demo flow
 * does not require manual fixes
+
+---
+
+## sprint_execution
+
+Treat [`SPRINT_TRACKER.md`](SPRINT_TRACKER.md) as the live execution contract during the hackathon.
+
+* Work in vertical slices: start decision, ask questions, produce review.
+* Complete the current gate before starting the next slice.
+* Time-box every non-core enhancement; history is optional and never gates the review flow.
+* At T+105, stop feature work and reserve time for lint, build, smoke test, and deployment.
+
+---
+
+## resilience_first
+
+The demo must remain useful when an external service fails.
+
+* Never make the root render depend on a database health check.
+* Return successful AI output even when persistence fails, with an explicit persistence status.
+* Preserve in-progress input in local storage and make retry idempotent from the user's perspective.
+* Convert provider, database, and parsing failures into short actionable messages; never expose internals.
+
+---
+
+## contract_first
+
+Before wiring UI, write the request and response shape for each route and validate it at the boundary.
+
+* The browser renders validated JSON, never model-generated markdown.
+* AI schemas should be small, bounded, and directly aligned with visible review sections.
+* Keep `decisionId` nullable so the UI does not couple the demo to persistence.
+* A schema change must be reflected in the route, client state, and tracker smoke test in the same diff.
+
+---
+
+## phase_gates
+
+Use explicit gates instead of intuition:
+
+1. The app renders without Neon.
+2. Call 1 returns one to three useful questions.
+3. Call 2 returns every visible review section.
+4. A first-time user can finish without explanation.
+5. Lint, build, and the exact demo story pass before freeze.
+
+When a gate fails, fix it before adding features.
